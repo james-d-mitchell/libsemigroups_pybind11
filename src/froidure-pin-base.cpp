@@ -23,7 +23,7 @@
 // #include <pybind11/chrono.h>
 // #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
-// #include <pybind11/stl.h>
+#include <pybind11/stl.h>
 // TODO uncomment/delete
 
 // libsemigroups_pybind11....
@@ -34,14 +34,13 @@ namespace py = pybind11;
 namespace libsemigroups {
 
   void init_froidure_pin_base(py::module& m) {
-    py::class_<FroidurePinBase> thing(m,
-                                      "FroidurePinBase",
-                                      R"pbdoc(
+    py::class_<FroidurePinBase, Runner> thing(m,
+                                              "FroidurePinBase",
+                                              R"pbdoc(
 Base class for :any:`FroidurePin` containing non-element specific data and
 member functions. :any:`FroidurePinBase` is an abstract class which cannot be
 instantiated directly, only via the derived class :any:`FroidurePin`.)pbdoc");
 
-    // TODO thing.def("__repr__", &detail::to_string<FroidurePinBase const&>);
     thing.def(
         "batch_size",
         [](FroidurePinBase const& self) { return self.batch_size(); },

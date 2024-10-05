@@ -161,6 +161,7 @@ namespace libsemigroups {
     init_dot(m);
     init_matrix(m);
     init_froidure_pin_base(m);
+    init_froidure_pin(m);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = VERSION_INFO;

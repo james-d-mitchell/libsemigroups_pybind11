@@ -11,3 +11,4 @@ FroidurePin
    :maxdepth: 1
 
    froidure-pin-base
+   froidure-pin
