@@ -25,7 +25,7 @@ from .py_wrappers import (
 
 
 from _libsemigroups_pybind11 import (
-    UNDEFINED,
+    FroidurePinBase,
     StaticTransf16 as _StaticTransf16,
     Transf1 as _Transf1,
     Transf2 as _Transf2,
@@ -76,64 +76,11 @@ from _libsemigroups_pybind11 import (
 
 Element = TypeVar("Element")
 
-_ElementToFroidurePin = {
-    _StaticTransf16: _FroidurePinTransf16,
-    _Transf1: _FroidurePinTransf1,
-    _Transf2: _FroidurePinTransf2,
-    _Transf4: _FroidurePinTransf4,
-    _StaticPPerm16: _FroidurePinPPerm16,
-    _PPerm1: _FroidurePinPPerm1,
-    _PPerm2: _FroidurePinPPerm2,
-    _PPerm4: _FroidurePinPPerm4,
-    _StaticPerm16: _FroidurePinPerm16,
-    _Perm1: _FroidurePinPerm1,
-    _Perm2: _FroidurePinPerm2,
-    _Perm4: _FroidurePinPerm4,
-    _Bipartition: _FroidurePinBipartition,
-    _PBR: _FroidurePinPBR,
-    _BMat8: _FroidurePinBMat8,
-    _BMat: _FroidurePinBMat,
-    _IntMat: _FroidurePinIntMat,
-    _MaxPlusMat: _FroidurePinMaxPlusMat,
-    _MinPlusMat: _FroidurePinMinPlusMat,
-    _ProjMaxPlusMat: _FroidurePinProjMaxPlusMat,
-    _MaxPlusTruncMat: _FroidurePinMaxPlusTruncMat,
-    _MinPlusTruncMat: _FroidurePinMinPlusTruncMat,
-    _NTPMat: _FroidurePinNTPMat,
-}
-
-_FroidurePinTypes = {
-    _FroidurePinTransf16: True,
-    _FroidurePinTransf1: True,
-    _FroidurePinTransf2: True,
-    _FroidurePinTransf4: True,
-    _FroidurePinPPerm16: True,
-    _FroidurePinPPerm1: True,
-    _FroidurePinPPerm2: True,
-    _FroidurePinPPerm4: True,
-    _FroidurePinPerm16: True,
-    _FroidurePinPerm1: True,
-    _FroidurePinPerm2: True,
-    _FroidurePinPerm4: True,
-    _FroidurePinBipartition: True,
-    _FroidurePinPBR: True,
-    _FroidurePinBMat8: True,
-    _FroidurePinBMat: True,
-    _FroidurePinIntMat: True,
-    _FroidurePinMaxPlusMat: True,
-    _FroidurePinMinPlusMat: True,
-    _FroidurePinProjMaxPlusMat: True,
-    _FroidurePinMaxPlusTruncMat: True,
-    _FroidurePinMinPlusTruncMat: True,
-    _FroidurePinNTPMat: True,
-    # _FroidurePinKBE: True,
-    # _FroidurePinTCE: True,
-}
-
 
 class FroidurePin(CppObjWrapper):
     __doc__ = _FroidurePinPBR.__doc__
 
+    # TODO put this in a function call, to avoid the underscores etc
     _CppObjWrapper__lookup = {
         (_StaticTransf16,): _FroidurePinTransf16,
         (_Transf1,): _FroidurePinTransf1,
@@ -182,6 +129,12 @@ class FroidurePin(CppObjWrapper):
     def __getitem__(self: Self, i: int) -> Element:
         return self.cpp_call_mem_fn("__getitem__", i)
 
+    def __iter__(self: Self) -> Iterator:
+        return map(
+            lambda x: to_py(self.Element, x, self.degree()),
+            self.cpp_call_mem_fn("__iter__"),
+        )
+
     def degree(self: Self) -> int:
         return self._degree
 
@@ -190,7 +143,7 @@ class FroidurePin(CppObjWrapper):
         return self.cpp_call_mem_fn("generator", i)
 
     @may_return_undefined
-    def current_position(self: Self, x: Element) -> int:
+    def current_position(self: Self, x: Element | List[int]) -> int:
         return self.cpp_call_mem_fn("current_position", x)
 
     def idempotents(self: Self) -> Iterator:
@@ -200,7 +153,7 @@ class FroidurePin(CppObjWrapper):
         )
 
     @may_return_undefined
-    def position(self: Self, x: Element) -> int:
+    def position(self: Self, x: Element | List[int]) -> int:
         return self.cpp_call_mem_fn("position", x)
 
     @returns_element
@@ -218,6 +171,7 @@ class FroidurePin(CppObjWrapper):
         return self.cpp_call_mem_fn("to_element", w)
 
 
+# Methods from FroidurePin itself
 pass_thru_methods(
     FroidurePin,
     "add_generator",
@@ -236,24 +190,36 @@ pass_thru_methods(
     "number_of_generators",
     "number_of_idempotents",
     "reserve",
-    "size",
     "sorted_position",
     "to_sorted_position",
 )
 
-# def FroidurePin(*args):
-#     """
-#     Construct a FroidurePin instance of the type specified by its generators.
-#     """
-#     if len(args) == 0:
-#         raise ValueError("expected at least 1 argument, found 0")
-#     if type(args[0]) in _FroidurePinTypes:
-#         return type(args[0])(args[0])
-#     if isinstance(args[0], list):
-#         args_ = args[0]
-#     else:
-#         args_ = args
-#     if isinstance(args_[0], CppObjWrapper):
-#         args_ = [to_cpp(x) for x in args]
-#     type_ = type(args_[0])
-#     return _ElementToFroidurePin[type_](args_)
+# Methods from FroidurePinBase itself
+pass_thru_methods(
+    FroidurePin,
+    "batch_size",
+    # TODO impl the other batch_size overload in FroidurePin cpp
+    "current_left_cayley_graph",
+    "current_length",
+    "current_max_word_length",
+    "current_minimal_factorisation",
+    "current_normal_forms",
+    "current_number_of_rules",
+    "current_right_cayley_graph",
+    "current_rules",
+    "current_size",
+    "enumerate",
+    "final_letter",
+    "first_letter",
+    "is_monoid",
+    "left_cayley_graph",
+    "length",
+    "normal_forms",
+    "number_of_elements_of_length",
+    "number_of_rules",
+    "prefix",
+    "right_cayley_graph",
+    "rules",
+    "size",
+    "suffix",
+)

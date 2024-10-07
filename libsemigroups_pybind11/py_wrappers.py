@@ -46,7 +46,7 @@ def to_py(Element: Any, x: Any, *args) -> Any:  # pylint: disable=invalid-name
     return x
 
 
-class CppObjWrapper(metaclass=abc.ABCMeta):
+class CppObjWrapper:
     # pylint: disable=missing-class-docstring
     # pylint: disable=protected-access, no-member, too-few-public-methods
     @property
@@ -100,10 +100,11 @@ class CppObjWrapper(metaclass=abc.ABCMeta):
             self._cpp_obj = None
             return
 
-        raise ValueError(
-            f"unexpected keyword argument combination {kwargs.values()}, "
-            f"expected one of {lookup.keys()}"
-        )
+        # TODO really comment this out?
+        # raise ValueError(
+        #     f"unexpected keyword argument combination {kwargs.values()}, "
+        #     f"expected one of {lookup.keys()}"
+        # )
 
     def cpp_call_mem_fn(self: Self, name: str, *args):
         if hasattr(self, "_init_cpp_obj"):

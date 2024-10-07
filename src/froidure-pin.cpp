@@ -487,6 +487,18 @@ that evaluates to *x*.
 :raises LibsemigroupsError:
   if *x* does not belong to the :any:`FroidurePinPBR` instance.
 )pbdoc");
+      // TODO the other overloaded functions where one overload is in
+      // FroidurePinBase and the other in FroidurePin must be redeclared here,
+      // otherwise they don't show up in python
+      thing.def(
+          "minimal_factorisation",
+          [](FroidurePin_& self, size_t i) {
+            return self.minimal_factorisation(i);
+          },
+          py::arg("i"),
+          R"pbdoc(
+    TODO
+)pbdoc");
 
       thing.def("number_of_generators",
                 &FroidurePin_::number_of_generators,
@@ -531,6 +543,41 @@ This function the position of *x* in a :any:`FroidurePinPBR` instance, or
 :rtype: int | UNDEFINED
 
 .. seealso::  :any:`current_position` and :any:`sorted_position`.
+)pbdoc");
+      thing.def("position",
+                &FroidurePinBase::position,
+                py::arg("i"),
+                R"pbdoc(
+                TODO
+)pbdoc");
+      thing.def(
+          "current_position",
+          [](FroidurePinBase const& self, word_type const& w) {
+            return self.current_position(w);
+          },
+          py::arg("w"),
+          R"pbdoc(
+::sig=(self: FroidurePinBase, w: List[int]) -> int:
+
+Returns the position corresponding to a word.
+
+Returns the position in the semigroup corresponding to the element
+represented by the word *w*. This function returns the position
+corresponding to the element obtained by evaluating the word in the
+generators *w*. No enumeration is performed, and :any:`UNDEFINED` is
+returned if the position of the element corresponding to *w* cannot be
+determined.
+
+:param w: a word in the generators.
+:type w: word_type
+
+:returns: The current position of the element represented by a word.
+:rtype: int
+
+:raises LibsemigroupsError:
+  if *w* contains an value exceeding :any:`FroidurePin.number_of_generators`.
+
+:complexity:  :math:`O(n)` where :math:`n` is the length of the word *w*.
 )pbdoc");
 
       thing.def("reserve",

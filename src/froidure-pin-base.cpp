@@ -20,11 +20,8 @@
 #include <libsemigroups/froidure-pin-base.hpp>
 
 // pybind11....
-// #include <pybind11/chrono.h>
-// #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-// TODO uncomment/delete
 
 // libsemigroups_pybind11....
 #include "main.hpp"  // for init_froidure_pin_base
@@ -55,34 +52,30 @@ This function returns the minimum number of elements enumerated in any call to
 
 :complexity: Constant.
 )pbdoc");
-    /* TODO   thing.def(
-    "batch_size",
-    [](FroidurePinBase& self, size_t batch_size) {
-    return self.batch_size(batch_size);
-    },
-    py::arg("batch_size"),
-    R"pbdoc(
+    thing.def(
+        "batch_size",
+        [](FroidurePinBase& self, size_t batch_size) -> FroidurePinBase& {
+          return self.batch_size(batch_size);
+        },
+        py::arg("batch_size"),
+        R"pbdoc(
     Set a new value for the batch size.
 
-    :param batch_size: the new value for the batch size.
-    :type batch_size: int
     The *batch size* is the number of new elements to be found by any call to
     :any:`run` . This is used by, for example, :any:`FroidurePin::position` so
     that it is possible to find the position of an element after only partially
     enumerating the semigroup.The default value of the batch size is ``8192``.
 
-    :exceptions: This function is ``noexcept`` and is guaranteed never to
-    throw.
-
-    :complexity: Constant.
-
-    .. seealso::  :any:`batch_size`.
-
+    :param batch_size: the new value for the batch size.
+    :type batch_size: int
 
     :returns: A reference to ``self``.
-
     :rtype: FroidurePinBase
-    )pbdoc");*/
+
+
+    :complexity: Constant.
+    .. seealso::  :any:`batch_size`.
+    )pbdoc");
 
     thing.def(
         "current_normal_forms",
@@ -298,66 +291,31 @@ defining the semigroup if the semigroup is fully enumerated.
 :complexity:
   Constant.
 )pbdoc");
-    /*
-    thing.def(
-    "current_position",
-    [](FroidurePinBase const& self, generator_index_type i) {
-    return self.current_position(i);
-    },
-    py::arg("i"),
-    R"pbdoc(
-    Returns the position in of the generator with specified index.
-
-    :param i: the index of the generators.
-    :type i: generator_index_type
-    In many cases ``current_position(i)`` will equal ``i`` , examples of when
-    this will not be the case are:
-
-    *  there are duplicate generators;
-    *  :any:`FroidurePin::add_generators` was called after the semigroup was
-    already partially enumerated.
-
-
-
-    :raises LibsemigroupsError:  if ``i`` is greater than or equal to
-    :any:`FroidurePin::number_of_generators`.
-
-    :complexity: Constant.
-
-
-    :returns: A value of type :any:`FroidurePinBase::element_index_type`.
-
-    :rtype: FroidurePinBase::element_index_type
-    )pbdoc");
-    */
     thing.def(
         "current_position",
-        [](FroidurePinBase const& self, word_type const& w) {
-          return self.current_position(w);
+        [](FroidurePinBase const& self, size_t i) {
+          return self.current_position(i);
         },
-        py::arg("w"),
+        py::arg("i"),
         R"pbdoc(
-::sig=(self: FroidurePinBase, w: List[int]) -> int:
+Returns the position in of the generator with specified index.
 
-Returns the position corresponding to a word.
+In many cases ``current_position(i)`` will equal *i*, examples of when this
+will not be the case are:
+* there are duplicate generators;
+* :any:`FroidurePin::add_generators` was called after the semigroup was
+  already partially enumerated.
 
-Returns the position in the semigroup corresponding to the element
-represented by the word *w*. This function returns the position
-corresponding to the element obtained by evaluating the word in the
-generators *w*. No enumeration is performed, and :any:`UNDEFINED` is
-returned if the position of the element corresponding to *w* cannot be
-determined.
+:param i: the index of the generators.
+:type i: generator_index_type
 
-:param w: a word in the generators.
-:type w: word_type
-
-:returns: The current position of the element represented by a word.
+:returns: The position of the *i*th generator.
 :rtype: int
 
 :raises LibsemigroupsError:
-  if *w* contains an value exceeding :any:`FroidurePin.number_of_generators`.
+  if *i* is greater than or equal to :any:`FroidurePin.number_of_generators`.
 
-:complexity:  :math:`O(n)` where :math:`n` is the length of the word *w*.
+:complexity: Constant.
 )pbdoc");
     thing.def("current_right_cayley_graph",
               &FroidurePinBase::current_right_cayley_graph,
