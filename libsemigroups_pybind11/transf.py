@@ -44,6 +44,8 @@ from _libsemigroups_pybind11 import (
 from .tools import copydoc
 from .py_wrappers import CppObjWrapper, pass_thru_methods
 
+pybind11_type = type(_StaticTransf16)
+
 
 class PTransfBase(CppObjWrapper):
     """
@@ -87,9 +89,18 @@ class PTransfBase(CppObjWrapper):
     def __new__(cls, *_):
         return super(PTransfBase, cls).__new__(cls)
 
-    def __init__(self: Self, arg: Any) -> None:
+    def __init__(self: Self, arg: Any, *args) -> None:
         # pylint: disable=not-callable, super-init-not-called
-        if isinstance(type(arg), type(_StaticTransf16)):
+        if len(args) == 1:
+            assert isinstance(type(arg), pybind11_type)
+            deg = args[0]
+            self._cpp_obj = arg
+            self._degree = deg
+            return
+
+        assert len(args) == 0
+
+        if isinstance(type(arg), pybind11_type):
             # check if arg is a pybind11 built in type
             self._cpp_obj = arg
             self._degree = arg.degree()
@@ -203,9 +214,7 @@ class PTransfBase(CppObjWrapper):
         return result
 
     def rank(self: Self) -> None:  # pylint: disable=missing-function-docstring
-        if PTransfBase._is_static(type(self._cpp_obj)) and not isinstance(
-            self, PPerm
-        ):
+        if PTransfBase._is_static(type(self._cpp_obj)) and not isinstance(self, PPerm):
             return self._cpp_obj.rank() - (16 - self._degree)
         return self._cpp_obj.rank()
 
@@ -250,9 +259,7 @@ class Transf(PTransfBase):  # pylint: disable=missing-class-docstring
     def __repr__(self: Self) -> str:
         if self._degree < 32:
             return str(self)
-        return (
-            f"<transformation of degree {self.degree()} and rank {self.rank()}>"
-        )
+        return f"<transformation of degree {self.degree()} and rank {self.rank()}>"
 
     def __str__(self: Self) -> str:
         return f"Transf({list(self.images())})"
@@ -300,13 +307,13 @@ class PPerm(PTransfBase):  # pylint: disable=missing-class-docstring
     def __repr__(self: Self) -> str:
         if self._degree < 32:
             return str(self)
-        return (
-            f"<partial perm of degree {self.degree()} and rank {self.rank()}>"
-        )
+        return f"<partial perm of degree {self.degree()} and rank {self.rank()}>"
 
     def __str__(self: Self) -> str:
         # pylint: disable-next=unsubscriptable-object
-        return f"PPerm({domain(self)}, {[self[i] for i in domain(self)]}, {self.degree()})"
+        return (
+            f"PPerm({domain(self)}, {[self[i] for i in domain(self)]}, {self.degree()})"
+        )
 
     @staticmethod
     def one(N: int):  # pylint: disable=arguments-differ
@@ -358,14 +365,14 @@ class Perm(Transf):  # pylint: disable=missing-class-docstring
 
 @copydoc(_one)
 def one(  # pylint: disable=missing-function-docstring
-    x: Union[Transf, PPerm, Perm]
+    x: Union[Transf, PPerm, Perm],
 ) -> Union[Transf, PPerm, Perm]:
     return type(x).one(x.degree())
 
 
 @copydoc(_inverse)
 def inverse(  # pylint: disable=missing-function-docstring
-    x: Union[PPerm, Perm]
+    x: Union[PPerm, Perm],
 ) -> Union[PPerm, Perm]:
     subclass = type(x)
     result = subclass.__new__(subclass)

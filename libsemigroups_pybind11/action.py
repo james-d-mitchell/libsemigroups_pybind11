@@ -56,9 +56,7 @@ from .runner import Runner
 from .transf import PPerm, Transf
 
 
-class Action(
-    Runner
-):  # pylint: disable=invalid-name, too-many-instance-attributes, no-member
+class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attributes, no-member
     """
     The documentation for this class is taken from RightActionPPerm16List in
     src/action.cpp!
@@ -345,15 +343,13 @@ pass_thru_methods(
     Action,
     "word_graph",
     "scc",
-    ("__len__", "size"),
-    ("index", "position"),
     "iterator",
+    __len__="size",
+    index="position",
 )
 
 
-def RightAction(
-    Func=ImageRightAction, **kwargs
-):  # pylint: disable=invalid-name
+def RightAction(Func=ImageRightAction, **kwargs):  # pylint: disable=invalid-name
     """
     Construct a right :any:`RightActionPPerm16List` instance.
 

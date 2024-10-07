@@ -21,9 +21,11 @@ for examples.
 
 import abc
 from functools import partialmethod
-from typing import Any, Tuple, Union
+from typing import Any, Union, Callable
 
 from typing_extensions import Self
+
+from _libsemigroups_pybind11 import UNDEFINED as _UNDEFINED
 
 
 def to_cpp(x: Any) -> Any:
@@ -35,12 +37,12 @@ def to_cpp(x: Any) -> Any:
     return x
 
 
-def to_py(Element: Any, x: Any) -> Any:  # pylint: disable=invalid-name
+def to_py(Element: Any, x: Any, *args) -> Any:  # pylint: disable=invalid-name
     """
     This function returns Element(x) if x is not None and type(x) != Element, and x o/w.
     """
     if x is not None and not isinstance(x, Element):
-        return Element(x)
+        return Element(x, *args)
     return x
 
 
@@ -103,10 +105,13 @@ class CppObjWrapper(metaclass=abc.ABCMeta):
             f"expected one of {lookup.keys()}"
         )
 
+    def cpp_call_mem_fn(self: Self, name: str, *args):
+        if hasattr(self, "_init_cpp_obj"):
+            self._init_cpp_obj()
+        return getattr(self._cpp_obj, name)(*(to_cpp(x) for x in args))
 
-def pass_thru_method(
-    cls: CppObjWrapper, name: Union[str, Tuple[str, str]]
-) -> None:
+
+def pass_thru_method(cls: CppObjWrapper, meth_name: str) -> None:
     """
     This function adds a method to the python class "cls" with the name "name =
     (py_name, cpp_name)" that is basically equivalent to:
@@ -121,18 +126,11 @@ def pass_thru_method(
     :type cls: A subclass of CppObjWrapper.
 
     :param name: tuple containing the python name and cpp name of the method.
-    :type name: str | Tuple[str, str]
+    :type name: str
+    TODO
     """
     assert issubclass(cls, CppObjWrapper)
-    assert isinstance(name, (str, tuple))
-    assert not isinstance(name, tuple) or len(name) == 2
-    assert not isinstance(name, tuple) or isinstance(name[0], str)
-    assert not isinstance(name, tuple) or isinstance(name[1], str)
-
-    if isinstance(name, tuple):
-        py_name, cpp_name = name
-    else:
-        py_name, cpp_name = name, name
+    assert isinstance(meth_name, str)
 
     def func(self, meth, *args) -> Any:
         if hasattr(self, "_init_cpp_obj"):
@@ -141,13 +139,36 @@ def pass_thru_method(
 
     # We use functools.partialmethod because without it, the value of func
     # would be the last value called in this function
-    setattr(cls, py_name, partialmethod(func, cpp_name))
+    return partialmethod(func, meth_name)
 
 
-def pass_thru_methods(cls, *args):
+def pass_thru_methods(cls, *args, **kwargs):
     """
     Helper for the previous function (pass_thru_method) that just adds a number
     of methods to the class.
     """
-    for meth in args:
-        pass_thru_method(cls, meth)
+
+    for meth_name in args:
+        setattr(cls, meth_name, pass_thru_method(cls, meth_name))
+
+    for meth_name, impl_or_impl_name in kwargs.items():
+        if isinstance(impl_or_impl_name, str):
+            setattr(cls, meth_name, pass_thru_method(cls, impl_or_impl_name))
+        else:
+            setattr(cls, meth_name, impl_or_impl_name)
+
+
+def may_return_undefined(func):
+    """
+    This function is a decorator for functions/methods that might return
+    UNDEFINED (as an integer, since there's no other option in C++), and which
+    should return the UNDEFINED object.
+    """
+
+    def wrapper(*args):
+        result = func(*args)
+        if result in (4294967295, 18446744073709551615):
+            return _UNDEFINED
+        return result
+
+    return wrapper

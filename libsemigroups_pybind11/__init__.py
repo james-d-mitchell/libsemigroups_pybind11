@@ -103,5 +103,3 @@ MatrixKind.__name__ = "MatrixKind"
 from .froidure_pin import FroidurePin
 
 # TEMPORARY TODO delete
-
-from .py_wrappers import CppObjWrapper
