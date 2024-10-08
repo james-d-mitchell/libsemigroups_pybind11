@@ -136,6 +136,9 @@ def pass_thru_method(cls: CppObjWrapper, meth_name: str) -> None:
     def func(self, meth, *args) -> Any:
         if hasattr(self, "_init_cpp_obj"):
             self._init_cpp_obj()
+        if len(args) == 1 and isinstance(args[0], list):
+            args = args[0]
+            return getattr(self._cpp_obj, meth)([to_cpp(x) for x in args])
         return getattr(self._cpp_obj, meth)(*(to_cpp(x) for x in args))
 
     # We use functools.partialmethod because without it, the value of func

@@ -291,32 +291,6 @@ defining the semigroup if the semigroup is fully enumerated.
 :complexity:
   Constant.
 )pbdoc");
-    thing.def(
-        "current_position",
-        [](FroidurePinBase const& self, size_t i) {
-          return self.current_position(i);
-        },
-        py::arg("i"),
-        R"pbdoc(
-Returns the position in of the generator with specified index.
-
-In many cases ``current_position(i)`` will equal *i*, examples of when this
-will not be the case are:
-* there are duplicate generators;
-* :any:`FroidurePin::add_generators` was called after the semigroup was
-  already partially enumerated.
-
-:param i: the index of the generators.
-:type i: generator_index_type
-
-:returns: The position of the *i*th generator.
-:rtype: int
-
-:raises LibsemigroupsError:
-  if *i* is greater than or equal to :any:`FroidurePin.number_of_generators`.
-
-:complexity: Constant.
-)pbdoc");
     thing.def("current_right_cayley_graph",
               &FroidurePinBase::current_right_cayley_graph,
               R"pbdoc(
@@ -381,37 +355,6 @@ nothing. Otherwise, :any:`run` attempts to find at least the maximum of
 :complexity:
   At worst :math:`O(mn)` where :math:`m` equals *limit* and :math:`n` is the
   return value of :any:`FroidurePin.number_of_generators`.)pbdoc");
-
-    thing.def(
-        "factorisation",
-        [](FroidurePinBase& self, FroidurePinBase::element_index_type pos) {
-          return self.factorisation(pos);
-        },
-        py::arg("pos"),
-        R"pbdoc(
-:sig=(self: FroidurePinBase, pos: int) -> List[int]:
-
-Returns a word representing an element given by index.
-
-This is the same as the two-argument member function for :any:`factorisation` ,
-but it returns a ``List[int]`` by value instead of modifying an argument
-in-place. The key difference between this function and
-:any:`minimal_factorisation` is that the resulting factorisation may not be
-minimal.
-
-:param pos: the index of the element whose factorisation is sought.
-:type pos: int
-
-:returns: A factorisation of the element with index *pos*.
-:rtype: List[int]
-
-:raises LibsemigroupsError:
-  if *pos* is greater than or equal to :any:`size`.
-
-:complexity:
-  At worst :math:`O(mn)` where :math:`m` equals *pos* and
-  :math:`n` is the return value of :any:`FroidurePin.number_of_generators`.
-)pbdoc");
 
     thing.def("final_letter",
               &FroidurePinBase::final_letter,

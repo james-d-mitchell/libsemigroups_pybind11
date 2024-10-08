@@ -115,9 +115,13 @@ class FroidurePin(CppObjWrapper):
 
         return wrapper
 
-    def __init__(self: Self, gens: List[Element]) -> None:
-        if len(gens) == 0:
+    def __init__(self: Self, *args) -> None:
+        if len(args) == 0:
             raise ValueError("expected at least 1 argument, found 0")
+        if isinstance(args[0], list) and len(args) == 1:
+            gens = args[0]
+        else:
+            gens = args
         cpp_obj_t = self._cpp_obj_type_from(
             samples=(to_cpp(gens[0]),),
         )
@@ -180,6 +184,7 @@ pass_thru_methods(
     "contains",
     "copy_add_generators",
     "copy_closure",
+    "copy",
     "equal_to",
     "factorisation",
     "fast_product",
@@ -198,7 +203,6 @@ pass_thru_methods(
 pass_thru_methods(
     FroidurePin,
     "batch_size",
-    # TODO impl the other batch_size overload in FroidurePin cpp
     "current_left_cayley_graph",
     "current_length",
     "current_max_word_length",
@@ -222,4 +226,23 @@ pass_thru_methods(
     "rules",
     "size",
     "suffix",
+)
+
+# Methods from Runner
+pass_thru_methods(
+    FroidurePin,
+    "current_state",
+    "dead",
+    "finished",
+    "kill",
+    "run",
+    "run_for",
+    "running",
+    "running_for",
+    "running_until",
+    "started",
+    "state",
+    "stopped",
+    "stopped_by_predicate",
+    "timed_out",
 )
