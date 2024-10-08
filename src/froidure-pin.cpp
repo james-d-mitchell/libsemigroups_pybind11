@@ -758,7 +758,8 @@ greater than :any:`size()`.
 
     bind_froidure_pin<BMat8>(m, "BMat8");
     bind_froidure_pin<BMat<>>(m, "BMat");
-    bind_froidure_pin<IntMat<>>(m, "IntMat");
+    bind_froidure_pin<IntMat<0, 0, int64_t>>(m, "IntMat");
+    // TODO ensure matrix type correct from here down
     bind_froidure_pin<MaxPlusMat<>>(m, "MaxPlusMat");
     bind_froidure_pin<MinPlusMat<>>(m, "MinPlusMat");
     bind_froidure_pin<ProjMaxPlusMat<>>(m, "ProjMaxPlusMat");

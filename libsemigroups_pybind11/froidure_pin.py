@@ -23,6 +23,7 @@ from .py_wrappers import (
     pass_thru_methods,
 )
 
+from .transf import Transf, PPerm, Perm
 
 from _libsemigroups_pybind11 import (
     FroidurePinBase,
@@ -72,6 +73,7 @@ from _libsemigroups_pybind11 import (
     FroidurePinMaxPlusTruncMat as _FroidurePinMaxPlusTruncMat,
     FroidurePinMinPlusTruncMat as _FroidurePinMinPlusTruncMat,
     FroidurePinNTPMat as _FroidurePinNTPMat,
+    product_by_reduction,
 )
 
 Element = TypeVar("Element")
@@ -134,8 +136,13 @@ class FroidurePin(CppObjWrapper):
         return self.cpp_call_mem_fn("__getitem__", i)
 
     def __iter__(self: Self) -> Iterator:
+        if self.Element in (Transf, PPerm, Perm):
+            return map(
+                lambda x: to_py(self.Element, x, self.degree()),
+                self.cpp_call_mem_fn("__iter__"),
+            )
         return map(
-            lambda x: to_py(self.Element, x, self.degree()),
+            lambda x: to_py(self.Element, x),
             self.cpp_call_mem_fn("__iter__"),
         )
 
@@ -237,6 +244,7 @@ pass_thru_methods(
     "kill",
     "run",
     "run_for",
+    "run_until",
     "running",
     "running_for",
     "running_until",

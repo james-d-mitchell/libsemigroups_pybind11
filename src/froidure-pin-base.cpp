@@ -615,5 +615,45 @@ Returns the position of the suffix of the element ``x`` in position *pos*
 
 :complexity: Constant.
 )pbdoc");
+    m.def("product_by_reduction",
+          &froidure_pin::product_by_reduction,
+          py::arg("fpb"),
+          py::arg("i"),
+          py::arg("j"),
+          R"pbdoc(
+Compute a product using the Cayley graph.
+
+:param fpb:
+   the FroidurePinBase object.
+
+:type fpb:
+   FroidurePinBase
+
+:param i:
+   the index of an element.
+
+:param j:
+   another index of an element.This function finds the product of
+   ``fpb.at(i)`` and ``fpb.at(j)`` by following the path in the right
+   Cayley graph from ``i`` labelled by the word
+   ``fpb.minimal_factorisation(j)`` or, if
+   ``fpb.minimal_factorisation(i)`` is shorter, by following the path in
+   the left Cayley graph from ``j`` labelled by
+   ``fpb.minimal_factorisation(i)``.
+
+:raises LibsemigroupsError:
+   if ``i`` or ``j`` is greater than or equal to
+   :any:`FroidurePinBase::current_size`.
+
+:complexity:
+   :math:`O(n)` where :math:`n` is the minimum of the lengths of
+   ``minimal_factorisation(i)`` and ``minimal_factorisation(j)``.
+
+:returns:
+   A value of type :any:`FroidurePinBase::element_index_type`.
+
+:rtype:
+   FroidurePinBase::element_index_type
+)pbdoc");
   }  // init_froidure_pin_base
 }  // namespace libsemigroups

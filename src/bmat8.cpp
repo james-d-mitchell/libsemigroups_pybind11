@@ -173,16 +173,19 @@ of 8 bits each, of the binary representation of ``mat``.
 Construct from list of rows.
 
 This constructor initializes a matrix where the rows of the matrix are the
-vectors in ``mat``.
+lists in ``rows``.
 
 :param rows: the list of rows of the matrix being constructed.
 :type rows: list[list[bool]]
 
-:raises LibsemigroupsError:  if ``mat`` has 0 rows.
-:raises LibsemigroupsError:  if ``mat`` has more than 8 rows.
-:raises LibsemigroupsError:  if the rows of ``mat`` are not all of the same length.
+:raises LibsemigroupsError:  if *rows* has 0 rows.
+:raises LibsemigroupsError:  if *rows* has more than 8 rows.
+:raises LibsemigroupsError:  if the rows of *rows* are not all of the same length.
 
 :complexity: Constant.)pbdoc");
+    thing2.def("degree",
+               [](BMat8 const& self) { return bmat8::number_of_rows(self); });
+
     thing2.def(
         "copy",
         [](BMat8 const& self) { return BMat8(self); },

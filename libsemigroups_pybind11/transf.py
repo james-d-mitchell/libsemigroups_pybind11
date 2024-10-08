@@ -292,7 +292,7 @@ class PPerm(PTransfBase):  # pylint: disable=missing-class-docstring
         raise RuntimeError("this should never happen")  # pragma: no cover
 
     def __init__(self: Self, *args):
-        if len(args) == 1:
+        if len(args) < 3:
             super().__init__(*args)
             return
         if len(args) != 3:
@@ -325,6 +325,9 @@ class PPerm(PTransfBase):  # pylint: disable=missing-class-docstring
 
 class Perm(Transf):  # pylint: disable=missing-class-docstring
     __doc__ = _StaticPerm16.__doc__
+
+    def __init__(self: Self, *args):
+        super().__init__(*args)
 
     @staticmethod
     def _cpp_type_from_degree(n: int):
