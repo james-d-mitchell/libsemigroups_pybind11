@@ -20,7 +20,6 @@ from .py_wrappers import (
     to_py,
     CppObjWrapper,
     may_return_undefined,
-    pass_thru_methods,
 )
 
 from .transf import Transf, PPerm, Perm
@@ -133,17 +132,17 @@ class FroidurePin(CppObjWrapper):
 
     @returns_element
     def __getitem__(self: Self, i: int) -> Element:
-        return self.cpp_call_mem_fn("__getitem__", i)
+        return getattr(self._cpp_obj, "__getitem__")(i)
 
     def __iter__(self: Self) -> Iterator:
         if self.Element in (Transf, PPerm, Perm):
             return map(
                 lambda x: to_py(self.Element, x, self.degree()),
-                self.cpp_call_mem_fn("__iter__"),
+                getattr(self._cpp_obj, "__iter__")(),
             )
         return map(
             lambda x: to_py(self.Element, x),
-            self.cpp_call_mem_fn("__iter__"),
+            getattr(self._cpp_obj, "__iter__")(),
         )
 
     def degree(self: Self) -> int:
@@ -151,106 +150,32 @@ class FroidurePin(CppObjWrapper):
 
     @returns_element
     def generator(self: Self, i: int) -> Element:
-        return self.cpp_call_mem_fn("generator", i)
+        return getattr(self._cpp_obj, "generator")(i)
 
     @may_return_undefined
     def current_position(self: Self, x: Element | List[int]) -> int:
-        return self.cpp_call_mem_fn("current_position", x)
+        return getattr(self._cpp_obj, "current_position")(to_cpp(x))
 
     def idempotents(self: Self) -> Iterator:
         return map(
             lambda x: to_py(self.Element, x, self.degree()),
-            self.cpp_call_mem_fn("idempotents"),
+            getattr(self._cpp_obj, "idempotents")(),
         )
 
     @may_return_undefined
     def position(self: Self, x: Element | List[int]) -> int:
-        return self.cpp_call_mem_fn("position", x)
+        return getattr(self._cpp_obj, "position")(to_cpp(x))
 
     @returns_element
     def sorted_at(self: Self, i: int) -> Element:
-        return self.cpp_call_mem_fn("sorted_at", i)
+        return getattr(self._cpp_obj, "sorted_at")(i)
 
     def sorted_elements(self: Self) -> Iterator:
         return map(
             lambda x: to_py(self.Element, x, self.degree()),
-            self.cpp_call_mem_fn("sorted_elements"),
+            getattr(self._cpp_obj, "sorted_elements")(),
         )
 
     @returns_element
     def to_element(self: Self, w: List[int]) -> Element:
-        return self.cpp_call_mem_fn("to_element", w)
-
-
-# Methods from FroidurePin itself
-pass_thru_methods(
-    FroidurePin,
-    "add_generator",
-    "add_generators",
-    "closure",
-    "contains",
-    "copy_add_generators",
-    "copy_closure",
-    "copy",
-    "equal_to",
-    "factorisation",
-    "fast_product",
-    "init",
-    "is_finite",
-    "is_idempotent",
-    "minimal_factorisation",
-    "number_of_generators",
-    "number_of_idempotents",
-    "reserve",
-    "sorted_position",
-    "to_sorted_position",
-)
-
-# Methods from FroidurePinBase itself
-pass_thru_methods(
-    FroidurePin,
-    "batch_size",
-    "current_left_cayley_graph",
-    "current_length",
-    "current_max_word_length",
-    "current_minimal_factorisation",
-    "current_normal_forms",
-    "current_number_of_rules",
-    "current_right_cayley_graph",
-    "current_rules",
-    "current_size",
-    "enumerate",
-    "final_letter",
-    "first_letter",
-    "is_monoid",
-    "left_cayley_graph",
-    "length",
-    "normal_forms",
-    "number_of_elements_of_length",
-    "number_of_rules",
-    "prefix",
-    "right_cayley_graph",
-    "rules",
-    "size",
-    "suffix",
-)
-
-# Methods from Runner
-pass_thru_methods(
-    FroidurePin,
-    "current_state",
-    "dead",
-    "finished",
-    "kill",
-    "run",
-    "run_for",
-    "run_until",
-    "running",
-    "running_for",
-    "running_until",
-    "started",
-    "state",
-    "stopped",
-    "stopped_by_predicate",
-    "timed_out",
-)
+        return getattr(self._cpp_obj, "to_element")(w)

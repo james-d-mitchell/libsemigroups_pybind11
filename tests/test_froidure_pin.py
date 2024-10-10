@@ -452,72 +452,67 @@ def test_froidure_pin_max_plus(checks_for_froidure_pin, checks_for_generators):
         check(FroidurePin(gens))
 
 
-# def test_froidure_pin_min_plus(checks_for_froidure_pin, checks_for_generators):
-#     ReportGuard(False)
-#     x = MinPlusMat(2, 2)
-#     gens = [MinPlusMat([[1, 0], [0, x.zero()]])]
-#     assert FroidurePin(gens).size() == 3
-#
-#     for check in checks_for_generators:
-#         check(gens)
-#
-#     for check in checks_for_froidure_pin:
-#         check(FroidurePin(gens))
-#
-#
-# def test_froidure_pin_proj_max_plus(
-#     checks_for_froidure_pin, checks_for_generators
-# ):
-#     ReportGuard(False)
-#     x = Matrix(MatrixKind.ProjMaxPlus, 2, 2)
-#     gens = [Matrix(MatrixKind.ProjMaxPlus, [[1, 0], [0, x.zero()]])]
-#     assert FroidurePin(gens).size() == 2
-#
-#     for check in checks_for_generators:
-#         check(gens)
-#
-#     for check in checks_for_froidure_pin:
-#         check(FroidurePin(gens))
-#
-#
-# def test_froidure_pin_max_plus_trunc(
-#     checks_for_froidure_pin, checks_for_generators
-# ):
-#     ReportGuard(False)
-#     gens = [Matrix(MatrixKind.MaxPlusTrunc, 11, [[1, 0], [0, 1]])]
-#     assert FroidurePin(gens).size() == 12
-#
-#     for check in checks_for_generators:
-#         check(gens)
-#
-#     for check in checks_for_froidure_pin:
-#         check(FroidurePin(gens))
-#
-#
-# def test_froidure_pin_min_plus_trunc(
-#     checks_for_froidure_pin, checks_for_generators
-# ):
-#     ReportGuard(False)
-#     gens = [Matrix(MatrixKind.MinPlusTrunc, 11, [[1, 0], [0, 1]])]
-#     assert FroidurePin(gens).size() == 2
-#
-#     for check in checks_for_generators:
-#         check(gens)
-#
-#     for check in checks_for_froidure_pin:
-#         check(FroidurePin(gens))
-#
-#
-# def test_froidure_pin_ntp(checks_for_froidure_pin, checks_for_generators):
-#     ReportGuard(False)
-#     gens = [Matrix(MatrixKind.NTP, 5, 7, [[1, 1], [1, 1]])]
-#     assert FroidurePin(gens).size() == 6
-#
-#     for check in checks_for_generators:
-#         check(gens)
-#
-#     for check in checks_for_froidure_pin:
-#         check(FroidurePin(gens))
+def test_froidure_pin_min_plus(checks_for_froidure_pin, checks_for_generators):
+    ReportGuard(False)
+    x = Matrix(MatrixKind.MinPlus, 2, 2)
+    gens = [Matrix(MatrixKind.MinPlus, [[1, 0], [0, x.scalar_zero()]])]
+    assert FroidurePin(gens).size() == 3
+
+    for check in checks_for_generators:
+        check(gens)
+
+    for check in checks_for_froidure_pin:
+        check(FroidurePin(gens))
+
+
+def test_froidure_pin_proj_max_plus(checks_for_froidure_pin, checks_for_generators):
+    ReportGuard(False)
+    x = Matrix(MatrixKind.ProjMaxPlus, 2, 2)
+    gens = [Matrix(MatrixKind.ProjMaxPlus, [[1, 0], [0, x.scalar_zero()]])]
+    assert FroidurePin(gens).size() == 2
+
+    for check in checks_for_generators:
+        check(gens)
+
+    for check in checks_for_froidure_pin:
+        check(FroidurePin(gens))
+
+
+def test_froidure_pin_max_plus_trunc(checks_for_froidure_pin, checks_for_generators):
+    ReportGuard(False)
+    gens = [Matrix(MatrixKind.MaxPlusTrunc, 11, [[1, 0], [0, 1]])]
+    assert FroidurePin(gens).size() == 12
+
+    for check in checks_for_generators:
+        check(gens)
+
+    for check in checks_for_froidure_pin:
+        check(FroidurePin(gens))
+
+
+def test_froidure_pin_min_plus_trunc(checks_for_froidure_pin, checks_for_generators):
+    ReportGuard(False)
+    gens = [Matrix(MatrixKind.MinPlusTrunc, 11, [[1, 0], [0, 1]])]
+    assert FroidurePin(gens).size() == 2
+
+    for check in checks_for_generators:
+        check(gens)
+
+    for check in checks_for_froidure_pin:
+        check(FroidurePin(gens))
+
+
+def test_froidure_pin_ntp(checks_for_froidure_pin, checks_for_generators):
+    ReportGuard(False)
+    gens = [Matrix(MatrixKind.NTP, 5, 7, [[1, 1], [1, 1]])]
+    assert FroidurePin(gens).size() == 6
+
+    for check in checks_for_generators:
+        check(gens)
+
+    for check in checks_for_froidure_pin:
+        check(FroidurePin(gens))
+
 
 # def test_froidure_pin_tce(checks_for_froidure_pin):
 #     ReportGuard(False)

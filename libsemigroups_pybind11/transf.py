@@ -42,7 +42,7 @@ from _libsemigroups_pybind11 import (
 )
 
 from .tools import copydoc
-from .py_wrappers import CppObjWrapper, pass_thru_methods
+from .py_wrappers import CppObjWrapper
 
 pybind11_type = type(_StaticTransf16)
 
@@ -86,13 +86,22 @@ class PTransfBase(CppObjWrapper):
     def degree(self: Self) -> int:  # pylint: disable=missing-function-docstring
         return self._degree
 
+    def __getitem__(self: Self, i: int) -> int:
+        return getattr(self._cpp_obj, "__getitem__")(i)
+
+    def __hash__(self: Self) -> int:
+        return getattr(self._cpp_obj, "__hash__")()
+
     def __new__(cls, *_):
         return super(PTransfBase, cls).__new__(cls)
 
     def __init__(self: Self, arg: Any, *args) -> None:
         # pylint: disable=not-callable, super-init-not-called
         if len(args) == 1:
-            assert isinstance(type(arg), pybind11_type)
+            if not isinstance(type(arg), pybind11_type):
+                raise TypeError(
+                    f"expected the argument to be pybind11_type, found {type(arg)}"
+                )
             deg = args[0]
             self._cpp_obj = arg
             self._degree = deg
@@ -229,9 +238,6 @@ class PTransfBase(CppObjWrapper):
             other._degree,
             self._degree,
         )
-
-
-pass_thru_methods(PTransfBase, "product_inplace", "__getitem__", "__hash__")
 
 
 class Transf(PTransfBase):  # pylint: disable=missing-class-docstring

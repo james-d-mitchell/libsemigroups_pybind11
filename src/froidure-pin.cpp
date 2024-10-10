@@ -294,7 +294,7 @@ may return :any:`UNDEFINED` when *x* does belong to the fully enumerated instanc
           },
           py::arg("w"),
           R"pbdoc(
-::sig=(self: FroidurePinBase, w: List[int]) -> int:
+:sig=(self: FroidurePinBase, w: List[int]) -> int:
 
 Returns the position corresponding to a word.
 
@@ -306,7 +306,7 @@ returned if the position of the element corresponding to *w* cannot be
 determined.
 
 :param w: a word in the generators.
-:type w: word_type
+:type w: List[int]
 
 :returns: The current position of the element represented by a word.
 :rtype: int
@@ -314,7 +314,7 @@ determined.
 :raises LibsemigroupsError:
   if *w* contains an value exceeding :any:`FroidurePin.number_of_generators`.
 
-:complexity:  :math:`O(n)` where :math:`n` is the length of the word *w*.
+:complexity: :math:`O(n)` where :math:`n` is the length of the word *w*.
 )pbdoc");
 
       thing.def(
@@ -328,14 +328,15 @@ Returns the position in of the generator with specified index.
 
 In many cases ``current_position(i)`` will equal *i*, examples of when this
 will not be the case are:
+
 * there are duplicate generators;
 * :any:`FroidurePin::add_generators` was called after the semigroup was
   already partially enumerated.
 
-:param i: the index of the generators.
-:type i: generator_index_type
+:param i: the index of the generator.
+:type i: int
 
-:returns: The position of the *i*th generator.
+:returns: The position of the generator with index *i*.
 :rtype: int
 
 :raises LibsemigroupsError:
@@ -607,10 +608,11 @@ a :any:`FroidurePinPBR` instance. Calling this function triggers a full enumerat
    int
 )pbdoc");
 
-      thing.def("position",
-                &FroidurePin_::position,
-                py::arg("x"),
-                R"pbdoc(
+      thing.def(
+          "position",
+          [](FroidurePin_& self, Element const& x) { return self.position(x); },
+          py::arg("x"),
+          R"pbdoc(
 Find the position of an element with enumeration if necessary.
 
 This function the position of *x* in a :any:`FroidurePinPBR` instance, or
@@ -624,12 +626,16 @@ This function the position of *x* in a :any:`FroidurePinPBR` instance, or
 
 .. seealso::  :any:`current_position` and :any:`sorted_position`.
 )pbdoc");
-      thing.def("position",
-                &FroidurePinBase::position,
-                py::arg("i"),
-                R"pbdoc(
-                TODO
-)pbdoc");
+      thing.def(
+          "position",
+          [](FroidurePin_& self, word_type const& w) {
+            return self.FroidurePinBase::position(w);
+          },
+          py::arg("w"),
+          R"pbdoc(
+
+       TODODO
+      )pbdoc");
 
       thing.def("reserve",
                 &FroidurePin_::reserve,
@@ -759,12 +765,11 @@ greater than :any:`size()`.
     bind_froidure_pin<BMat8>(m, "BMat8");
     bind_froidure_pin<BMat<>>(m, "BMat");
     bind_froidure_pin<IntMat<0, 0, int64_t>>(m, "IntMat");
-    // TODO ensure matrix type correct from here down
-    bind_froidure_pin<MaxPlusMat<>>(m, "MaxPlusMat");
-    bind_froidure_pin<MinPlusMat<>>(m, "MinPlusMat");
-    bind_froidure_pin<ProjMaxPlusMat<>>(m, "ProjMaxPlusMat");
-    bind_froidure_pin<MaxPlusTruncMat<>>(m, "MaxPlusTruncMat");
-    bind_froidure_pin<MinPlusTruncMat<>>(m, "MinPlusTruncMat");
-    bind_froidure_pin<NTPMat<>>(m, "NTPMat");
+    bind_froidure_pin<MaxPlusMat<0, 0, int64_t>>(m, "MaxPlusMat");
+    bind_froidure_pin<MinPlusMat<0, 0, int64_t>>(m, "MinPlusMat");
+    bind_froidure_pin<ProjMaxPlusMat<0, 0, int64_t>>(m, "ProjMaxPlusMat");
+    bind_froidure_pin<MaxPlusTruncMat<0, 0, 0, int64_t>>(m, "MaxPlusTruncMat");
+    bind_froidure_pin<MinPlusTruncMat<0, 0, 0, int64_t>>(m, "MinPlusTruncMat");
+    bind_froidure_pin<NTPMat<0, 0, 0, 0, int64_t>>(m, "NTPMat");
   }
 }  // namespace libsemigroups

@@ -16,12 +16,10 @@ libsemigroups. It exists for those python classes in libsemigroups_pybind11
 that wrap multiple C++ types.
 """
 
-from .py_wrappers import CppObjWrapper, pass_thru_methods
+from .py_wrappers import CppObjWrapper
 
 
-class Runner(
-    CppObjWrapper
-):  # pylint: disable=invalid-name, too-few-public-methods
+class Runner(CppObjWrapper):  # pylint: disable=invalid-name, too-few-public-methods
     """
     This class exists so that python classes derived from CppObjWrapper can
     also be derived from a class call Runner. I.e. Action objects in
@@ -31,23 +29,3 @@ class Runner(
     won't work for python classes) This class is used so
     that classes such as Action have the same interface as Runner C++ objects.
     """
-
-
-pass_thru_methods(
-    Runner,
-    "current_state",
-    "dead",
-    "finished",
-    "kill",
-    "run",
-    "run_for",
-    "run_until",
-    "running",
-    "running_for",
-    "running_until",
-    "started",
-    "state",
-    "stopped",
-    "stopped_by_predicate",
-    "timed_out",
-)

@@ -51,7 +51,7 @@ from _libsemigroups_pybind11 import (
 from _libsemigroups_pybind11 import BMat8, side, UNDEFINED
 
 from .adapters import ImageRightAction, ImageLeftAction
-from .py_wrappers import to_cpp, to_py, pass_thru_methods
+from .py_wrappers import to_cpp, to_py
 from .runner import Runner
 from .transf import PPerm, Transf
 
@@ -191,6 +191,11 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
         super().__init__(("Element", "Point", "Func", "Side"), **kwargs)
         self.init()
 
+    # TODO return type
+    def __getattr__(self: Self, meth_name: str):
+        self._init_cpp_obj()
+        return super().__getattr__(meth_name)
+
     def _init_cpp_obj(self: Self) -> None:
         # pylint: disable=attribute-defined-outside-init
         if self._cpp_obj is not None:
@@ -235,6 +240,15 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
         self._init_cpp_obj()
         return to_py(self.Point, self._cpp_obj[pos])
 
+    def __len__(self: Self):
+        self._init_cpp_obj()
+        return getattr(self._cpp_obj, "size")()
+
+    # TODO type annotations
+    def index(self: Self, x) -> int:
+        self._init_cpp_obj()
+        return getattr(self._cpp_obj, "position")(to_cpp(x))
+
     def add_generator(self: Self, x: Any) -> Self:
         if not isinstance(x, self.Element):
             raise ValueError(
@@ -245,6 +259,7 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
             len(self._generators) != 0
             and hasattr(x, "degree")
             and x.degree() != self._generators[0].degree()
+            and not isinstance(x, BMat8)
         ):
             raise ValueError(
                 "the argument (generator) has incorrect degree, expected "
@@ -337,16 +352,6 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
         if isinstance(x, self.Element):
             x = to_cpp(x)
         return self._cpp_obj.root_of_scc(x)
-
-
-pass_thru_methods(
-    Action,
-    "word_graph",
-    "scc",
-    "iterator",
-    __len__="size",
-    index="position",
-)
 
 
 def RightAction(Func=ImageRightAction, **kwargs):  # pylint: disable=invalid-name

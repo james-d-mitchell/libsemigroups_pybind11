@@ -20,8 +20,8 @@ for examples.
 """
 
 import abc
-from functools import partialmethod
-from typing import Any, Union, Callable
+from functools import partial, partialmethod
+from typing import Any, Union
 
 from typing_extensions import Self
 
@@ -49,6 +49,19 @@ def to_py(Element: Any, x: Any, *args) -> Any:  # pylint: disable=invalid-name
 class CppObjWrapper:
     # pylint: disable=missing-class-docstring
     # pylint: disable=protected-access, no-member, too-few-public-methods
+
+    def __getattr__(self: Self, meth_name: str):
+        # if hasattr(self, "_init_cpp_obj"):
+        #     self._init_cpp_obj()
+
+        def cxx_fn_wrapper(*args) -> Any:
+            if len(args) == 1 and isinstance(args[0], list):
+                args = args[0]
+                return getattr(self._cpp_obj, meth_name)([to_cpp(x) for x in args])
+            return getattr(self._cpp_obj, meth_name)(*(to_cpp(x) for x in args))
+
+        return cxx_fn_wrapper
+
     @property
     def _lookup(self: Self) -> dict:
         return self.__class__.__lookup
@@ -98,7 +111,7 @@ class CppObjWrapper:
             for key, val in kwargs.items():
                 setattr(self, key, val)
             self._cpp_obj = None
-            return
+            # return
 
         # TODO really comment this out?
         # raise ValueError(
@@ -106,60 +119,8 @@ class CppObjWrapper:
         #     f"expected one of {lookup.keys()}"
         # )
 
-    def cpp_call_mem_fn(self: Self, name: str, *args):
-        if hasattr(self, "_init_cpp_obj"):
-            self._init_cpp_obj()
-        return getattr(self._cpp_obj, name)(*(to_cpp(x) for x in args))
 
-
-def pass_thru_method(cls: CppObjWrapper, meth_name: str) -> None:
-    """
-    This function adds a method to the python class "cls" with the name "name =
-    (py_name, cpp_name)" that is basically equivalent to:
-
-    class cls:
-      def py_name(self, *args):
-        if hasattr(self, "_init_cpp_obj"):
-            self._init_cpp_obj()
-        return self._cpp_obj.cpp_name(to_cpp(args))
-
-    :param cls: The class we are adding the method to.
-    :type cls: A subclass of CppObjWrapper.
-
-    :param name: tuple containing the python name and cpp name of the method.
-    :type name: str
-    TODO
-    """
-    assert issubclass(cls, CppObjWrapper)
-    assert isinstance(meth_name, str)
-
-    def func(self, meth, *args) -> Any:
-        if hasattr(self, "_init_cpp_obj"):
-            self._init_cpp_obj()
-        if len(args) == 1 and isinstance(args[0], list):
-            args = args[0]
-            return getattr(self._cpp_obj, meth)([to_cpp(x) for x in args])
-        return getattr(self._cpp_obj, meth)(*(to_cpp(x) for x in args))
-
-    # We use functools.partialmethod because without it, the value of func
-    # would be the last value called in this function
-    return partialmethod(func, meth_name)
-
-
-def pass_thru_methods(cls, *args, **kwargs):
-    """
-    Helper for the previous function (pass_thru_method) that just adds a number
-    of methods to the class.
-    """
-
-    for meth_name in args:
-        setattr(cls, meth_name, pass_thru_method(cls, meth_name))
-
-    for meth_name, impl_or_impl_name in kwargs.items():
-        if isinstance(impl_or_impl_name, str):
-            setattr(cls, meth_name, pass_thru_method(cls, impl_or_impl_name))
-        else:
-            setattr(cls, meth_name, impl_or_impl_name)
+# Decorators
 
 
 def may_return_undefined(func):

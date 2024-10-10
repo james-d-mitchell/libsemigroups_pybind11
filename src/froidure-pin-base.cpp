@@ -59,23 +59,23 @@ This function returns the minimum number of elements enumerated in any call to
         },
         py::arg("batch_size"),
         R"pbdoc(
-    Set a new value for the batch size.
+Set a new value for the batch size.
 
-    The *batch size* is the number of new elements to be found by any call to
-    :any:`run` . This is used by, for example, :any:`FroidurePin::position` so
-    that it is possible to find the position of an element after only partially
-    enumerating the semigroup.The default value of the batch size is ``8192``.
+The *batch size* is the number of new elements to be found by any call to
+:any:`run` . This is used by, for example, :any:`FroidurePin::position` so
+that it is possible to find the position of an element after only partially
+enumerating the semigroup.The default value of the batch size is ``8192``.
 
-    :param batch_size: the new value for the batch size.
-    :type batch_size: int
+:param batch_size: the new value for the batch size.
+:type batch_size: int
 
-    :returns: A reference to ``self``.
-    :rtype: FroidurePinBase
+:returns: A reference to ``self``.
+:rtype: FroidurePinBase
 
 
-    :complexity: Constant.
-    .. seealso::  :any:`batch_size`.
-    )pbdoc");
+:complexity: Constant.
+.. seealso::  :any:`batch_size`.
+)pbdoc");
 
     thing.def(
         "current_normal_forms",
