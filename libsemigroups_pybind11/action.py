@@ -193,12 +193,12 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
 
     # TODO return type
     def __getattr__(self: Self, meth_name: str):
-        self._init_cpp_obj()
+        self._init_cxx_obj()
         return super().__getattr__(meth_name)
 
-    def _init_cpp_obj(self: Self) -> None:
+    def _init_cxx_obj(self: Self) -> None:
         # pylint: disable=attribute-defined-outside-init
-        if self._cpp_obj is not None:
+        if self._cxx_obj is not None:
             return
 
         if len(self._generators) == 0:
@@ -212,19 +212,19 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
                 "Action.add_seed"
             )
 
-        cpp_obj_t = self._cpp_obj_type_from(
+        cpp_obj_t = self._cxx_obj_type_from(
             samples=(self._generators[0], self._seeds[0]),
             types=(self.Func, self.Side),
         )
 
-        self._cpp_obj = cpp_obj_t()
+        self._cxx_obj = cpp_obj_t()
 
         for x in self._generators:
-            self._cpp_obj.add_generator(to_cxx(x))
+            self._cxx_obj.add_generator(to_cxx(x))
         for x in self._seeds:
-            self._cpp_obj.add_seed(to_cxx(x))
-        self._cpp_obj.cache_scc_multipliers(self._cache_scc_multipliers)
-        self._cpp_obj.reserve(self._reserve)
+            self._cxx_obj.add_seed(to_cxx(x))
+        self._cxx_obj.cache_scc_multipliers(self._cache_scc_multipliers)
+        self._cxx_obj.reserve(self._reserve)
 
     def __repr__(self: Self) -> str:
         result = super().__repr__()
@@ -237,17 +237,17 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
         )
 
     def __getitem__(self: Self, pos: int) -> Any:
-        self._init_cpp_obj()
-        return to_py(self.Point, self._cpp_obj[pos])
+        self._init_cxx_obj()
+        return to_py(self.Point, self._cxx_obj[pos])
 
     def __len__(self: Self):
-        self._init_cpp_obj()
-        return getattr(self._cpp_obj, "size")()
+        self._init_cxx_obj()
+        return getattr(self._cxx_obj, "size")()
 
     # TODO type annotations
     def index(self: Self, x) -> int:
-        self._init_cpp_obj()
-        return getattr(self._cpp_obj, "position")(to_cxx(x))
+        self._init_cxx_obj()
+        return getattr(self._cxx_obj, "position")(to_cxx(x))
 
     def add_generator(self: Self, x: Any) -> Self:
         if not isinstance(x, self.Element):
@@ -266,8 +266,8 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
                 f"{self._generators[0].degree()} but found {x.degree()}"
             )
 
-        if self._cpp_obj is not None:
-            self._cpp_obj.add_generator(to_cxx(x))
+        if self._cxx_obj is not None:
+            self._cxx_obj.add_generator(to_cxx(x))
         else:
             self._generators.append(x)
         return self
@@ -278,8 +278,8 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
                 "the argument (seed) has incorrect type, expected "
                 f"{self.Element} but found {type(x)}"
             )
-        if self._cpp_obj is not None:
-            self._cpp_obj.add_seed(to_cxx(x))
+        if self._cxx_obj is not None:
+            self._cxx_obj.add_seed(to_cxx(x))
         else:
             # TODO check compatibility of x with things already in _seeds,
             # i.e. degree. Not currently sure how to do this
@@ -288,8 +288,8 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
 
     def cache_scc_multipliers(self: Self, *args) -> Union[Self, bool]:
         # pylint: disable=attribute-defined-outside-init
-        if self._cpp_obj is not None:
-            return self._cpp_obj.cache_scc_multipliers(*args)
+        if self._cxx_obj is not None:
+            return self._cxx_obj.cache_scc_multipliers(*args)
         if len(args) == 0:
             return self._cache_scc_multipliers
         if len(args) == 1 and isinstance(args[0], bool):
@@ -301,8 +301,8 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
         )
 
     def current_size(self: Self) -> int:
-        if self._cpp_obj is not None:
-            return self._cpp_obj.current_size()
+        if self._cxx_obj is not None:
+            return self._cxx_obj.current_size()
         return len(self._seeds)
 
     def empty(self: Self) -> bool:
@@ -313,32 +313,32 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
         self._seeds = []
         self._cache_scc_multipliers = False
         self._reserve = 0
-        self._cpp_obj = None
+        self._cxx_obj = None
         return self
 
     def multiplier_from_scc_root(self: Self, pos: int) -> Any:
-        self._init_cpp_obj()
-        return to_py(self.Element, self._cpp_obj.multiplier_from_scc_root(pos))
+        self._init_cxx_obj()
+        return to_py(self.Element, self._cxx_obj.multiplier_from_scc_root(pos))
 
     def multiplier_to_scc_root(self: Self, pos: int) -> Any:
-        self._init_cpp_obj()
-        return to_py(self.Element, self._cpp_obj.multiplier_to_scc_root(pos))
+        self._init_cxx_obj()
+        return to_py(self.Element, self._cxx_obj.multiplier_to_scc_root(pos))
 
     def number_of_generators(self: Self) -> int:
-        if self._cpp_obj is None:
+        if self._cxx_obj is None:
             return len(self._generators)
 
-        return self._cpp_obj.number_of_generators()
+        return self._cxx_obj.number_of_generators()
 
     def __contains__(self: Self, pt: Any) -> bool:
         return self.index(pt) != UNDEFINED
 
     def reserve(self: Self, val: int) -> Self:
         # pylint: disable=attribute-defined-outside-init
-        if self._cpp_obj is None:
+        if self._cxx_obj is None:
             self._reserve = val
         else:
-            self._cpp_obj.reserve(val)
+            self._cxx_obj.reserve(val)
         return self
 
     def root_of_scc(self: Self, x: Any) -> Any:
@@ -351,7 +351,7 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
         self.run()
         if isinstance(x, self.Element):
             x = to_cxx(x)
-        return self._cpp_obj.root_of_scc(x)
+        return self._cxx_obj.root_of_scc(x)
 
 
 def RightAction(Func=ImageRightAction, **kwargs):  # pylint: disable=invalid-name

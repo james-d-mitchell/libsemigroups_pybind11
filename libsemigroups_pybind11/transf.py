@@ -50,8 +50,8 @@ pybind11_type = type(_StaticTransf16)
 class PTransfBase(CxxWrapper):
     """
     Subclasses must implement:
-    * _cpp_type_from_degree     (static method)
-    * _cpp_type_change_required (function)
+    * _cxx_type_from_degree     (static method)
+    * _cxx_type_change_required (function)
     * __str__                   (function)
     * __repr__                  (function)
     * one                       (static method)
@@ -59,11 +59,11 @@ class PTransfBase(CxxWrapper):
 
     @staticmethod
     @abc.abstractmethod
-    def _cpp_type_from_degree(n: int) -> Any:
+    def _cxx_type_from_degree(n: int) -> Any:
         return  # pragma: no cover
 
     @abc.abstractmethod
-    def _cpp_type_change_required(self: Self, n: int) -> bool:
+    def _cxx_type_change_required(self: Self, n: int) -> bool:
         return  # pragma: no cover
 
     @abc.abstractmethod
@@ -87,10 +87,10 @@ class PTransfBase(CxxWrapper):
         return self._degree
 
     def __getitem__(self: Self, i: int) -> int:
-        return getattr(self._cpp_obj, "__getitem__")(i)
+        return getattr(self._cxx_obj, "__getitem__")(i)
 
     def __hash__(self: Self) -> int:
-        return getattr(self._cpp_obj, "__hash__")()
+        return getattr(self._cxx_obj, "__hash__")()
 
     def __new__(cls, *_):
         return super(PTransfBase, cls).__new__(cls)
@@ -103,7 +103,7 @@ class PTransfBase(CxxWrapper):
                     f"expected the argument to be pybind11_type, found {type(arg)}"
                 )
             deg = args[0]
-            self._cpp_obj = arg
+            self._cxx_obj = arg
             self._degree = deg
             return
 
@@ -111,7 +111,7 @@ class PTransfBase(CxxWrapper):
 
         if isinstance(type(arg), pybind11_type):
             # check if arg is a pybind11 built in type
-            self._cpp_obj = arg
+            self._cxx_obj = arg
             self._degree = arg.degree()
             return
         images = arg
@@ -125,26 +125,26 @@ class PTransfBase(CxxWrapper):
             images = list(images)
 
         self._degree = len(images)
-        cpp_type = self._cpp_type_from_degree(len(images))
+        cpp_type = self._cxx_type_from_degree(len(images))
         if len(images) <= 16:
             if cpp_type is not _StaticPPerm16:
                 images += range(len(images), 16)
             else:
                 images += [cpp_type.undef()] * (16 - len(images))
 
-        self._cpp_obj = cpp_type(images)
+        self._cxx_obj = cpp_type(images)
 
     def __eq__(self: Self, other) -> bool:
         if self._degree != other._degree:
             return False
-        assert isinstance(other._cpp_obj, type(self._cpp_obj))
-        return self._cpp_obj == other._cpp_obj
+        assert isinstance(other._cxx_obj, type(self._cxx_obj))
+        return self._cxx_obj == other._cxx_obj
 
     def __lt__(self: Self, other) -> bool:
         if self._degree != other._degree:
             return self._degree < other._degree
-        assert isinstance(other._cpp_obj, type(self._cpp_obj))
-        return self._cpp_obj < other._cpp_obj
+        assert isinstance(other._cxx_obj, type(self._cxx_obj))
+        return self._cxx_obj < other._cxx_obj
 
     def __le__(self: Self, other) -> bool:
         return self < other or self == other
@@ -162,9 +162,9 @@ class PTransfBase(CxxWrapper):
         return result
 
     def __copy__(self: Self):
-        # Use _cpp_obj here so that we get the trailing undef's/id func in the
-        # case that _cpp_obj is static
-        result = type(self)(list(self._cpp_obj.images()))
+        # Use _cxx_obj here so that we get the trailing undef's/id func in the
+        # case that _cxx_obj is static
+        result = type(self)(list(self._cxx_obj.images()))
         result._degree = self._degree
         return result
 
@@ -174,8 +174,8 @@ class PTransfBase(CxxWrapper):
     def images(  # pylint: disable=missing-function-docstring
         self: Self,
     ) -> Iterator:
-        it = self._cpp_obj.images()
-        if PTransfBase._is_static(type(self._cpp_obj)):
+        it = self._cxx_obj.images()
+        if PTransfBase._is_static(type(self._cxx_obj)):
             return itertools.islice(it, self._degree)
         return it
 
@@ -190,19 +190,19 @@ class PTransfBase(CxxWrapper):
                 "transformations of degree > 2 ** 32 are not supported, "
                 f"expected at most {2 **32 - self._degree} but found {N}"
             )
-        if self._cpp_type_change_required(new_degree):
+        if self._cxx_type_change_required(new_degree):
             imgs = list(self.images())
             imgs.extend(range(self._degree, new_degree))
-            new_cpp_type = type(self)._cpp_type_from_degree(new_degree)
+            new_cxx_type = type(self)._cxx_type_from_degree(new_degree)
             if isinstance(self, PPerm):
-                old_cpp_type = type(self._cpp_obj)
+                old_cxx_type = type(self._cxx_obj)
                 imgs = [
-                    new_cpp_type.undef() if x == old_cpp_type.undef() else x
+                    new_cxx_type.undef() if x == old_cxx_type.undef() else x
                     for x in imgs
                 ]
-            self._cpp_obj = new_cpp_type(imgs)
-        elif not PTransfBase._is_static(type(self._cpp_obj)):
-            self._cpp_obj.increase_degree_by(N)
+            self._cxx_obj = new_cxx_type(imgs)
+        elif not PTransfBase._is_static(type(self._cxx_obj)):
+            self._cxx_obj.increase_degree_by(N)
         self._degree = new_degree
         return self
 
@@ -210,7 +210,7 @@ class PTransfBase(CxxWrapper):
     def _one(  # pylint: disable=missing-function-docstring
         N: int, subclass: Any
     ) -> Any:
-        cpp_type = subclass._cpp_type_from_degree(N)
+        cpp_type = subclass._cxx_type_from_degree(N)
         if PTransfBase._is_static(cpp_type):
             if subclass is PPerm:
                 return PPerm(range(N))
@@ -218,21 +218,21 @@ class PTransfBase(CxxWrapper):
         else:
             M = N
         result = subclass.__new__(subclass)
-        result._cpp_obj = cpp_type.one(M)
+        result._cxx_obj = cpp_type.one(M)
         result._degree = N
         return result
 
     def rank(self: Self) -> None:  # pylint: disable=missing-function-docstring
-        if PTransfBase._is_static(type(self._cpp_obj)) and not isinstance(self, PPerm):
-            return self._cpp_obj.rank() - (16 - self._degree)
-        return self._cpp_obj.rank()
+        if PTransfBase._is_static(type(self._cxx_obj)) and not isinstance(self, PPerm):
+            return self._cxx_obj.rank() - (16 - self._degree)
+        return self._cxx_obj.rank()
 
     def swap(  # pylint: disable=missing-function-docstring
         self: Self, other: Self
     ) -> None:
         # TODO maybe improve this with exception message or something, in case
-        # that self._cpp_obj type is not the same as other._cpp_obj type
-        self._cpp_obj.swap(other._cpp_obj)
+        # that self._cxx_obj type is not the same as other._cxx_obj type
+        self._cxx_obj.swap(other._cxx_obj)
 
         self._degree, other._degree = (
             other._degree,
@@ -244,7 +244,7 @@ class Transf(PTransfBase):  # pylint: disable=missing-class-docstring
     __doc__ = _StaticTransf16.__doc__
 
     @staticmethod
-    def _cpp_type_from_degree(n: int):
+    def _cxx_type_from_degree(n: int):
         if n <= 16:
             return _StaticTransf16
         if n <= 2**8:
@@ -253,12 +253,12 @@ class Transf(PTransfBase):  # pylint: disable=missing-class-docstring
             return _Transf2
         return _Transf4
 
-    def _cpp_type_change_required(self: Self, n: int) -> bool:
-        if isinstance(self._cpp_obj, _StaticTransf16):
+    def _cxx_type_change_required(self: Self, n: int) -> bool:
+        if isinstance(self._cxx_obj, _StaticTransf16):
             return n > 16
-        if isinstance(self._cpp_obj, _Transf1):
+        if isinstance(self._cxx_obj, _Transf1):
             return n > 2**8
-        if isinstance(self._cpp_obj, _Transf2):
+        if isinstance(self._cxx_obj, _Transf2):
             return n > 2**16
         raise RuntimeError("this should never happen")  # pragma: no cover
 
@@ -279,7 +279,7 @@ class PPerm(PTransfBase):  # pylint: disable=missing-class-docstring
     __doc__ = _StaticPPerm16.__doc__
 
     @staticmethod
-    def _cpp_type_from_degree(n: int):
+    def _cxx_type_from_degree(n: int):
         if n <= 16:
             return _StaticPPerm16
         if n <= 2**8:
@@ -288,12 +288,12 @@ class PPerm(PTransfBase):  # pylint: disable=missing-class-docstring
             return _PPerm2
         return _PPerm4
 
-    def _cpp_type_change_required(self: Self, n: int) -> bool:
-        if isinstance(self._cpp_obj, _StaticPPerm16):
+    def _cxx_type_change_required(self: Self, n: int) -> bool:
+        if isinstance(self._cxx_obj, _StaticPPerm16):
             return n > 16
-        if isinstance(self._cpp_obj, _PPerm1):
+        if isinstance(self._cxx_obj, _PPerm1):
             return n > 2**8
-        if isinstance(self._cpp_obj, _PPerm2):
+        if isinstance(self._cxx_obj, _PPerm2):
             return n > 2**16
         raise RuntimeError("this should never happen")  # pragma: no cover
 
@@ -308,7 +308,7 @@ class PPerm(PTransfBase):  # pylint: disable=missing-class-docstring
         args = list(args)
         if args[2] < 16:
             args[2] = 16
-        self._cpp_obj = self._cpp_type_from_degree(args[2])(*args)
+        self._cxx_obj = self._cxx_type_from_degree(args[2])(*args)
 
     def __repr__(self: Self) -> str:
         if self._degree < 32:
@@ -326,7 +326,7 @@ class PPerm(PTransfBase):  # pylint: disable=missing-class-docstring
         return PTransfBase._one(N, PPerm)
 
     def undef(self: Self) -> int:  # pylint: disable=missing-function-docstring
-        return self._cpp_obj.undef()
+        return self._cxx_obj.undef()
 
 
 class Perm(Transf):  # pylint: disable=missing-class-docstring
@@ -336,7 +336,7 @@ class Perm(Transf):  # pylint: disable=missing-class-docstring
         super().__init__(*args)
 
     @staticmethod
-    def _cpp_type_from_degree(n: int):
+    def _cxx_type_from_degree(n: int):
         if n <= 16:
             return _StaticPerm16
         if n <= 2**8:
@@ -345,12 +345,12 @@ class Perm(Transf):  # pylint: disable=missing-class-docstring
             return _Perm2
         return _Perm4
 
-    def _cpp_type_change_required(self: Self, n: int) -> bool:
-        if isinstance(self._cpp_obj, _StaticPerm16):
+    def _cxx_type_change_required(self: Self, n: int) -> bool:
+        if isinstance(self._cxx_obj, _StaticPerm16):
             return n > 16
-        if isinstance(self._cpp_obj, _Perm1):
+        if isinstance(self._cxx_obj, _Perm1):
             return n > 2**8
-        if isinstance(self._cpp_obj, _Perm2):
+        if isinstance(self._cxx_obj, _Perm2):
             return n > 2**16
         raise RuntimeError("this should never happen")  # pragma: no cover
 
@@ -385,7 +385,7 @@ def inverse(  # pylint: disable=missing-function-docstring
 ) -> Union[PPerm, Perm]:
     subclass = type(x)
     result = subclass.__new__(subclass)
-    result._cpp_obj = _inverse(x._cpp_obj)
+    result._cxx_obj = _inverse(x._cxx_obj)
     result._degree = x._degree
     return result
 
@@ -393,7 +393,7 @@ def inverse(  # pylint: disable=missing-function-docstring
 @copydoc(_right_one)
 def right_one(x: PPerm) -> PPerm:  # pylint: disable=missing-function-docstring
     result = PPerm.__new__(PPerm)
-    result._cpp_obj = _right_one(x._cpp_obj)
+    result._cxx_obj = _right_one(x._cxx_obj)
     result._degree = x._degree
     return result
 
@@ -401,22 +401,22 @@ def right_one(x: PPerm) -> PPerm:  # pylint: disable=missing-function-docstring
 @copydoc(_left_one)
 def left_one(x: PPerm) -> PPerm:  # pylint: disable=missing-function-docstring
     result = PPerm.__new__(PPerm)
-    result._cpp_obj = _left_one(x._cpp_obj)
+    result._cxx_obj = _left_one(x._cxx_obj)
     result._degree = x._degree
     return result
 
 
 @copydoc(_image)  # pylint: disable-next=missing-function-docstring
 def image(x: Union[Transf, PPerm, Perm]) -> Union[Transf, PPerm, Perm]:
-    result = _image(x._cpp_obj)
-    if type(x)._is_static(type(x._cpp_obj)):
+    result = _image(x._cxx_obj)
+    if type(x)._is_static(type(x._cxx_obj)):
         result = result[: x.degree()]
     return result
 
 
 @copydoc(_domain)  # pylint: disable-next=missing-function-docstring
 def domain(x: Union[Transf, PPerm, Perm]) -> Union[Transf, PPerm, Perm]:
-    result = _domain(x._cpp_obj)
-    if type(x)._is_static(type(x._cpp_obj)):
+    result = _domain(x._cxx_obj)
+    if type(x)._is_static(type(x._cxx_obj)):
         result = result[: x.degree()]
     return result

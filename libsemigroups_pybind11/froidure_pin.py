@@ -123,26 +123,26 @@ class FroidurePin(CxxWrapper):
             gens = args[0]
         else:
             gens = args
-        cpp_obj_t = self._cpp_obj_type_from(
+        cpp_obj_t = self._cxx_obj_type_from(
             samples=(to_cxx(gens[0]),),
         )
         self.Element = type(gens[0])
-        self._cpp_obj = cpp_obj_t([to_cxx(x) for x in gens])
+        self._cxx_obj = cpp_obj_t([to_cxx(x) for x in gens])
         self._degree = gens[0].degree()
 
     @returns_element
     def __getitem__(self: Self, i: int) -> Element:
-        return getattr(self._cpp_obj, "__getitem__")(i)
+        return getattr(self._cxx_obj, "__getitem__")(i)
 
     def __iter__(self: Self) -> Iterator:
         if self.Element in (Transf, PPerm, Perm):
             return map(
                 lambda x: to_py(self.Element, x, self.degree()),
-                getattr(self._cpp_obj, "__iter__")(),
+                getattr(self._cxx_obj, "__iter__")(),
             )
         return map(
             lambda x: to_py(self.Element, x),
-            getattr(self._cpp_obj, "__iter__")(),
+            getattr(self._cxx_obj, "__iter__")(),
         )
 
     def degree(self: Self) -> int:
@@ -150,32 +150,32 @@ class FroidurePin(CxxWrapper):
 
     @returns_element
     def generator(self: Self, i: int) -> Element:
-        return getattr(self._cpp_obj, "generator")(i)
+        return getattr(self._cxx_obj, "generator")(i)
 
     @may_return_undefined
     def current_position(self: Self, x: Element | List[int]) -> int:
-        return getattr(self._cpp_obj, "current_position")(to_cxx(x))
+        return getattr(self._cxx_obj, "current_position")(to_cxx(x))
 
     def idempotents(self: Self) -> Iterator:
         return map(
             lambda x: to_py(self.Element, x, self.degree()),
-            getattr(self._cpp_obj, "idempotents")(),
+            getattr(self._cxx_obj, "idempotents")(),
         )
 
     @may_return_undefined
     def position(self: Self, x: Element | List[int]) -> int:
-        return getattr(self._cpp_obj, "position")(to_cxx(x))
+        return getattr(self._cxx_obj, "position")(to_cxx(x))
 
     @returns_element
     def sorted_at(self: Self, i: int) -> Element:
-        return getattr(self._cpp_obj, "sorted_at")(i)
+        return getattr(self._cxx_obj, "sorted_at")(i)
 
     def sorted_elements(self: Self) -> Iterator:
         return map(
             lambda x: to_py(self.Element, x, self.degree()),
-            getattr(self._cpp_obj, "sorted_elements")(),
+            getattr(self._cxx_obj, "sorted_elements")(),
         )
 
     @returns_element
     def to_element(self: Self, w: List[int]) -> Element:
-        return getattr(self._cpp_obj, "to_element")(w)
+        return getattr(self._cxx_obj, "to_element")(w)

@@ -41,11 +41,11 @@ class _ImageAction(CxxWrapper):
     def __init__(self: Self, **kwargs):
         super().__init__(("Element", "Point"), **kwargs)
 
-    def _init_cpp_obj(self: Self, elt: Any, pt: Any) -> Any:
-        cpp_obj_t = self._cpp_obj_type_from(samples=(elt, pt))
-        if self._cpp_obj is None or not isinstance(self._cpp_obj, cpp_obj_t):
-            self._cpp_obj = cpp_obj_t()
-        return self._cpp_obj
+    def _init_cxx_obj(self: Self, elt: Any, pt: Any) -> Any:
+        cpp_obj_t = self._cxx_obj_type_from(samples=(elt, pt))
+        if self._cxx_obj is None or not isinstance(self._cxx_obj, cpp_obj_t):
+            self._cxx_obj = cpp_obj_t()
+        return self._cxx_obj
 
     def __call__(  # pylint: disable=inconsistent-return-statements
         self: Self, *args
@@ -75,8 +75,8 @@ class _ImageAction(CxxWrapper):
         if len(args) == 3 and self.Point is list:
             raise NotImplementedError("not yet implemented")
 
-        self._init_cpp_obj(x, pt)
-        result = to_py(self.Element, self._cpp_obj(*(to_cxx(x) for x in args)))
+        self._init_cxx_obj(x, pt)
+        result = to_py(self.Element, self._cxx_obj(*(to_cxx(x) for x in args)))
         if hasattr(pt, "_degree"):
             result._degree = pt.degree()
         return result

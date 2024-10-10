@@ -20,9 +20,7 @@ for examples.
 """
 
 import abc
-from functools import partial, partialmethod
-from typing import Any, Union
-
+from typing import Any
 from typing_extensions import Self
 
 from _libsemigroups_pybind11 import UNDEFINED as _UNDEFINED
@@ -30,10 +28,10 @@ from _libsemigroups_pybind11 import UNDEFINED as _UNDEFINED
 
 def to_cxx(x: Any) -> Any:
     """
-    This function returns x._cpp_obj if x is a CxxWrapper, and x o/w.
+    This function returns x._cxx_obj if x is a CxxWrapper, and x o/w.
     """
     if isinstance(x, CxxWrapper):
-        return x._cpp_obj
+        return x._cxx_obj
     return x
 
 
@@ -46,19 +44,16 @@ def to_py(Element: Any, x: Any, *args) -> Any:  # pylint: disable=invalid-name
     return x
 
 
-class CxxWrapper:
+class CxxWrapper(metaclass=abc.ABCMeta):
     # pylint: disable=missing-class-docstring
     # pylint: disable=protected-access, no-member, too-few-public-methods
 
     def __getattr__(self: Self, meth_name: str):
-        # if hasattr(self, "_init_cpp_obj"):
-        #     self._init_cpp_obj()
-
         def cxx_fn_wrapper(*args) -> Any:
             if len(args) == 1 and isinstance(args[0], list):
                 args = args[0]
-                return getattr(self._cpp_obj, meth_name)([to_cxx(x) for x in args])
-            return getattr(self._cpp_obj, meth_name)(*(to_cxx(x) for x in args))
+                return getattr(self._cxx_obj, meth_name)([to_cxx(x) for x in args])
+            return getattr(self._cxx_obj, meth_name)(*(to_cxx(x) for x in args))
 
         return cxx_fn_wrapper
 
@@ -67,11 +62,11 @@ class CxxWrapper:
         return self.__class__.__lookup
 
     def __repr__(self: Self) -> str:
-        if self._cpp_obj is not None:
-            return self._cpp_obj.__repr__()
+        if self._cxx_obj is not None:
+            return self._cxx_obj.__repr__()
         return ""
 
-    def _cpp_obj_type_from(self: Self, samples=(), types=()) -> Any:
+    def _cxx_obj_type_from(self: Self, samples=(), types=()) -> Any:
         py_types = tuple([type(x) for x in samples] + list(types))
         lookup = self._lookup
         if py_types not in lookup:
@@ -110,7 +105,7 @@ class CxxWrapper:
         if values in lookup:
             for key, val in kwargs.items():
                 setattr(self, key, val)
-            self._cpp_obj = None
+            self._cxx_obj = None
             # return
 
         # TODO really comment this out?
