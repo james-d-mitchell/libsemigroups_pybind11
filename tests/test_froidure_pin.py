@@ -23,7 +23,7 @@ from libsemigroups_pybind11 import (
     # KnuthBendix,
     PBR,
     Bipartition,
-    congruence_kind,
+    # congruence_kind,
     Matrix,
     MatrixKind,
     Transf,

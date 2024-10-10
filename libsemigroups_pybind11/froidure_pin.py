@@ -23,6 +23,7 @@ from .detail._cxx_wrapper import (
 )
 
 from .transf import Transf, PPerm, Perm
+from .tools import copydoc
 
 from _libsemigroups_pybind11 import (
     FroidurePinBase,
@@ -108,13 +109,14 @@ class FroidurePin(CxxWrapper):
     }
 
     @staticmethod
-    def returns_element(method):
+    def _returns_element(method):
         def wrapper(self, *args):
             result = method(self, *args)
             return to_py(self.Element, result, self.degree())
 
         return wrapper
 
+    @copydoc(_FroidurePinPBR.__init__)
     def __init__(self: Self, *args) -> None:
         if len(args) == 0:
             raise ValueError("expected at least 1 argument, found 0")
@@ -129,7 +131,7 @@ class FroidurePin(CxxWrapper):
         self._cxx_obj = cpp_obj_t([to_cxx(x) for x in gens])
         self._degree = gens[0].degree()
 
-    @returns_element
+    @_returns_element
     def __getitem__(self: Self, i: int) -> Element:
         return getattr(self._cxx_obj, "__getitem__")(i)
 
@@ -147,7 +149,7 @@ class FroidurePin(CxxWrapper):
     def degree(self: Self) -> int:
         return self._degree
 
-    @returns_element
+    @_returns_element
     def generator(self: Self, i: int) -> Element:
         return getattr(self._cxx_obj, "generator")(i)
 
@@ -165,7 +167,7 @@ class FroidurePin(CxxWrapper):
     def position(self: Self, x: Element | List[int]) -> int:
         return getattr(self._cxx_obj, "position")(to_cxx(x))
 
-    @returns_element
+    @_returns_element
     def sorted_at(self: Self, i: int) -> Element:
         return getattr(self._cxx_obj, "sorted_at")(i)
 
@@ -175,6 +177,6 @@ class FroidurePin(CxxWrapper):
             getattr(self._cxx_obj, "sorted_elements")(),
         )
 
-    @returns_element
+    @_returns_element
     def to_element(self: Self, w: List[int]) -> Element:
         return getattr(self._cxx_obj, "to_element")(w)
