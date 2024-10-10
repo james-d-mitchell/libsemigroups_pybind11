@@ -50,8 +50,9 @@ from _libsemigroups_pybind11 import (
 
 from _libsemigroups_pybind11 import BMat8, side, UNDEFINED
 
+from .detail._cxx_wrapper import to_cxx, to_py
+
 from .adapters import ImageRightAction, ImageLeftAction
-from .cxx_wrapper import to_cxx, to_py
 from .runner import Runner
 from .transf import PPerm, Transf
 
@@ -62,7 +63,7 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
     src/action.cpp!
     """
 
-    _CxxWrapper__lookup = {
+    py_to_cxx_type_dict = {
         (BMat8, BMat8, ImageRightAction, side.right): _RightActionBMat8BMat8,
         (BMat8, BMat8, ImageLeftAction, side.left): _LeftActionBMat8BMat8,
         (PPerm, PPerm, ImageRightAction, side.right): {

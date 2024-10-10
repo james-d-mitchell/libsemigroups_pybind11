@@ -25,15 +25,14 @@ from _libsemigroups_pybind11 import (
     ImageRightActionPPerm16List as _ImageRightActionPPerm16List,
     # TODO Transf
     # TODO other pperms
-)
-from _libsemigroups_pybind11 import (
     BMat8 as _BMat8,
     StaticPPerm16 as _StaticPPerm16,
 )
 
+from .detail._cxx_wrapper import CxxWrapper, to_cxx, to_py
+
 from .tools import ordinal
 from .transf import PPerm
-from .cxx_wrapper import CxxWrapper, to_cxx, to_py
 
 
 class _ImageAction(CxxWrapper):
@@ -92,7 +91,7 @@ class ImageRightAction(_ImageAction):
         * *Point* -- the type of the points acted on
     """
 
-    _CxxWrapper__lookup = {
+    py_to_cxx_type_dict = {
         (_BMat8, _BMat8): _ImageRightActionBMat8BMat8,
         (PPerm, PPerm): {
             (_StaticPPerm16, _StaticPPerm16): _ImageRightActionPPerm16PPerm16,
@@ -113,7 +112,7 @@ class ImageLeftAction(_ImageAction):  # pylint: disable=invalid-name
         * *Point* -- the type of the points acted on
     """
 
-    _CxxWrapper__lookup = {
+    py_to_cxx_type_dict = {
         (_BMat8, _BMat8): _ImageLeftActionBMat8BMat8,
         (PPerm, PPerm): {
             (_StaticPPerm16, _StaticPPerm16): _ImageLeftActionPPerm16PPerm16,

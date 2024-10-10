@@ -15,7 +15,7 @@ FroidurePin.
 
 from typing import Self, List, TypeVar, Iterator
 
-from .cxx_wrapper import (
+from .detail._cxx_wrapper import (
     to_cxx,
     to_py,
     CxxWrapper,
@@ -81,8 +81,7 @@ Element = TypeVar("Element")
 class FroidurePin(CxxWrapper):
     __doc__ = _FroidurePinPBR.__doc__
 
-    # TODO put this in a function call, to avoid the underscores etc
-    _CxxWrapper__lookup = {
+    py_to_cxx_type_dict = {
         (_StaticTransf16,): _FroidurePinTransf16,
         (_Transf1,): _FroidurePinTransf1,
         (_Transf2,): _FroidurePinTransf2,

@@ -42,7 +42,7 @@ from _libsemigroups_pybind11 import (
 )
 
 from .tools import copydoc
-from .cxx_wrapper import CxxWrapper
+from .detail._cxx_wrapper import CxxWrapper
 
 pybind11_type = type(_StaticTransf16)
 

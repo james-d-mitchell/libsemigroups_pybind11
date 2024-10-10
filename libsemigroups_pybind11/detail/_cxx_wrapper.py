@@ -14,6 +14,7 @@ multiple C++ types into a single python type. See:
 
     * action.py
     * adapters.py
+    * froidure_pin.py
     * transf.py
 
 for examples.
@@ -47,45 +48,8 @@ def to_py(Element: Any, x: Any, *args) -> Any:  # pylint: disable=invalid-name
 class CxxWrapper(metaclass=abc.ABCMeta):
     # pylint: disable=missing-class-docstring
     # pylint: disable=protected-access, no-member, too-few-public-methods
-
-    def __getattr__(self: Self, meth_name: str):
-        def cxx_fn_wrapper(*args) -> Any:
-            if len(args) == 1 and isinstance(args[0], list):
-                args = args[0]
-                return getattr(self._cxx_obj, meth_name)([to_cxx(x) for x in args])
-            return getattr(self._cxx_obj, meth_name)(*(to_cxx(x) for x in args))
-
-        return cxx_fn_wrapper
-
-    @property
-    def _lookup(self: Self) -> dict:
-        return self.__class__.__lookup
-
-    def __repr__(self: Self) -> str:
-        if self._cxx_obj is not None:
-            return self._cxx_obj.__repr__()
-        return ""
-
-    def _cxx_obj_type_from(self: Self, samples=(), types=()) -> Any:
-        py_types = tuple([type(x) for x in samples] + list(types))
-        lookup = self._lookup
-        if py_types not in lookup:
-            raise ValueError(
-                f"unexpected keyword argument combination {py_types}, "
-                f"expected one of {tuple(lookup.keys())}"
-            )
-        if not isinstance(lookup[py_types], dict):
-            return lookup[py_types]
-        lookup = lookup[py_types]
-        cpp_types = tuple([type(to_cxx(x)) for x in samples] + list(types))
-        if cpp_types not in lookup:
-            raise ValueError(
-                f"unexpected keyword argument combination {cpp_types}, "
-                f"expected one of {lookup.keys()}"
-            )
-        return lookup[cpp_types]
-
     def __init__(self: Self, expected_kwargs, **kwargs):
+        """See action.py for how to use this"""
         # pylint: disable=invalid-name
         if len(kwargs) != len(expected_kwargs):
             raise TypeError(
@@ -101,18 +65,70 @@ class CxxWrapper(metaclass=abc.ABCMeta):
         # the next line ensures we get the values in the same order as in
         # lookup
         values = tuple(kwargs[x] for x in expected_kwargs)
-        lookup = self._lookup
+        lookup = self.py_to_cxx_type_dict
         if values in lookup:
             for key, val in kwargs.items():
                 setattr(self, key, val)
             self._cxx_obj = None
-            # return
+            return
 
-        # TODO really comment this out?
-        # raise ValueError(
-        #     f"unexpected keyword argument combination {kwargs.values()}, "
-        #     f"expected one of {lookup.keys()}"
-        # )
+        raise ValueError(
+            f"unexpected keyword argument combination {kwargs.values()}, "
+            f"expected one of {lookup.keys()}"
+        )
+
+    def __getattr__(self: Self, meth_name: str):
+        """
+        This method is the fallback for method calls for an instance A of
+        CxxWrapper, e.g. A.size(), if there's no such method explicitly
+        defined, then we just fall back to calling the method of the same name
+        on the underlying self._cxx_obj.
+
+        If self._cxx_obj requires initialisation, then this should be
+        implemented in the __getattr__ method of the derived class.
+        """
+
+        def cxx_fn_wrapper(*args) -> Any:
+            if len(args) == 1 and isinstance(args[0], list):
+                args = args[0]
+                return getattr(self._cxx_obj, meth_name)([to_cxx(x) for x in args])
+            return getattr(self._cxx_obj, meth_name)(*(to_cxx(x) for x in args))
+
+        return cxx_fn_wrapper
+
+    def __repr__(self: Self) -> str:
+        if self._cxx_obj is not None:
+            return self._cxx_obj.__repr__()
+        return ""
+
+    @property
+    def py_to_cxx_type_dict(self: Self) -> dict:
+        return self.__class__.__lookup
+
+    # TODO type annotations
+    @py_to_cxx_type_dict.setter
+    def py_to_cxx_type_dict(self: Self, value):
+        # TODO check that value is a dict of the correct structure
+        self.__class__.__lookup = value
+
+    def _cxx_obj_type_from(self: Self, samples=(), types=()) -> Any:
+        py_types = tuple([type(x) for x in samples] + list(types))
+        lookup = self.py_to_cxx_type_dict
+        if py_types not in lookup:
+            raise ValueError(
+                f"unexpected keyword argument combination {py_types}, "
+                f"expected one of {tuple(lookup.keys())}"
+            )
+        if not isinstance(lookup[py_types], dict):
+            return lookup[py_types]
+        lookup = lookup[py_types]
+        cpp_types = tuple([type(to_cxx(x)) for x in samples] + list(types))
+        if cpp_types not in lookup:
+            raise ValueError(
+                f"unexpected keyword argument combination {cpp_types}, "
+                f"expected one of {lookup.keys()}"
+            )
+        return lookup[cpp_types]
 
 
 # Decorators
