@@ -53,7 +53,7 @@ class _MatrixKind(_Enum):
     NTP = 7
 
 
-_MatrixKindToCppType = {
+_MatrixKindToCxxType = {
     _MatrixKind.Boolean: _BMat,
     _MatrixKind.Integer: _IntMat,
     _MatrixKind.MaxPlus: _MaxPlusMat,
@@ -149,7 +149,7 @@ def row_basis(x):
     return _convert_cpp_rows_to_py(_row_basis(x))
 
 
-for Mat in _MatrixKindToCppType.values():
+for Mat in _MatrixKindToCxxType.values():
     Mat.__getitem__ = _at
     Mat.scalar_zero = _scalar_zero
 
@@ -163,4 +163,4 @@ def _Matrix(kind: _MatrixKind, *args):
     """
     if not isinstance(kind, _MatrixKind):
         raise TypeError("the 1st argument must be a _MatrixKind")
-    return _MatrixKindToCppType[kind](*_convert_matrix_args(*args))
+    return _MatrixKindToCxxType[kind](*_convert_matrix_args(*args))

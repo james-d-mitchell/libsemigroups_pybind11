@@ -15,10 +15,10 @@ FroidurePin.
 
 from typing import Self, List, TypeVar, Iterator
 
-from .py_wrappers import (
-    to_cpp,
+from .cxx_wrapper import (
+    to_cxx,
     to_py,
-    CppObjWrapper,
+    CxxWrapper,
     may_return_undefined,
 )
 
@@ -78,11 +78,11 @@ from _libsemigroups_pybind11 import (
 Element = TypeVar("Element")
 
 
-class FroidurePin(CppObjWrapper):
+class FroidurePin(CxxWrapper):
     __doc__ = _FroidurePinPBR.__doc__
 
     # TODO put this in a function call, to avoid the underscores etc
-    _CppObjWrapper__lookup = {
+    _CxxWrapper__lookup = {
         (_StaticTransf16,): _FroidurePinTransf16,
         (_Transf1,): _FroidurePinTransf1,
         (_Transf2,): _FroidurePinTransf2,
@@ -124,10 +124,10 @@ class FroidurePin(CppObjWrapper):
         else:
             gens = args
         cpp_obj_t = self._cpp_obj_type_from(
-            samples=(to_cpp(gens[0]),),
+            samples=(to_cxx(gens[0]),),
         )
         self.Element = type(gens[0])
-        self._cpp_obj = cpp_obj_t([to_cpp(x) for x in gens])
+        self._cpp_obj = cpp_obj_t([to_cxx(x) for x in gens])
         self._degree = gens[0].degree()
 
     @returns_element
@@ -154,7 +154,7 @@ class FroidurePin(CppObjWrapper):
 
     @may_return_undefined
     def current_position(self: Self, x: Element | List[int]) -> int:
-        return getattr(self._cpp_obj, "current_position")(to_cpp(x))
+        return getattr(self._cpp_obj, "current_position")(to_cxx(x))
 
     def idempotents(self: Self) -> Iterator:
         return map(
@@ -164,7 +164,7 @@ class FroidurePin(CppObjWrapper):
 
     @may_return_undefined
     def position(self: Self, x: Element | List[int]) -> int:
-        return getattr(self._cpp_obj, "position")(to_cpp(x))
+        return getattr(self._cpp_obj, "position")(to_cxx(x))
 
     @returns_element
     def sorted_at(self: Self, i: int) -> Element:

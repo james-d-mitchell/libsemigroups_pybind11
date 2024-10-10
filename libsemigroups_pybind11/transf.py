@@ -42,12 +42,12 @@ from _libsemigroups_pybind11 import (
 )
 
 from .tools import copydoc
-from .py_wrappers import CppObjWrapper
+from .cxx_wrapper import CxxWrapper
 
 pybind11_type = type(_StaticTransf16)
 
 
-class PTransfBase(CppObjWrapper):
+class PTransfBase(CxxWrapper):
     """
     Subclasses must implement:
     * _cpp_type_from_degree     (static method)

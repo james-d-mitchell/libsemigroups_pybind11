@@ -12,6 +12,7 @@
 This package provides the user-facing python part of libsemigroups_pybind11 for
 various adapters from libsemigroups.
 """
+
 from typing import Any
 
 from typing_extensions import Self
@@ -32,10 +33,10 @@ from _libsemigroups_pybind11 import (
 
 from .tools import ordinal
 from .transf import PPerm
-from .py_wrappers import CppObjWrapper, to_cpp, to_py
+from .cxx_wrapper import CxxWrapper, to_cxx, to_py
 
 
-class _ImageAction(CppObjWrapper):
+class _ImageAction(CxxWrapper):
     # pylint: disable=protected-access, no-member, too-few-public-methods
     def __init__(self: Self, **kwargs):
         super().__init__(("Element", "Point"), **kwargs)
@@ -75,7 +76,7 @@ class _ImageAction(CppObjWrapper):
             raise NotImplementedError("not yet implemented")
 
         self._init_cpp_obj(x, pt)
-        result = to_py(self.Element, self._cpp_obj(*(to_cpp(x) for x in args)))
+        result = to_py(self.Element, self._cpp_obj(*(to_cxx(x) for x in args)))
         if hasattr(pt, "_degree"):
             result._degree = pt.degree()
         return result
@@ -91,7 +92,7 @@ class ImageRightAction(_ImageAction):
         * *Point* -- the type of the points acted on
     """
 
-    _CppObjWrapper__lookup = {
+    _CxxWrapper__lookup = {
         (_BMat8, _BMat8): _ImageRightActionBMat8BMat8,
         (PPerm, PPerm): {
             (_StaticPPerm16, _StaticPPerm16): _ImageRightActionPPerm16PPerm16,
@@ -112,7 +113,7 @@ class ImageLeftAction(_ImageAction):  # pylint: disable=invalid-name
         * *Point* -- the type of the points acted on
     """
 
-    _CppObjWrapper__lookup = {
+    _CxxWrapper__lookup = {
         (_BMat8, _BMat8): _ImageLeftActionBMat8BMat8,
         (PPerm, PPerm): {
             (_StaticPPerm16, _StaticPPerm16): _ImageLeftActionPPerm16PPerm16,

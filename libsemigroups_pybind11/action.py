@@ -51,7 +51,7 @@ from _libsemigroups_pybind11 import (
 from _libsemigroups_pybind11 import BMat8, side, UNDEFINED
 
 from .adapters import ImageRightAction, ImageLeftAction
-from .py_wrappers import to_cpp, to_py
+from .cxx_wrapper import to_cxx, to_py
 from .runner import Runner
 from .transf import PPerm, Transf
 
@@ -62,7 +62,7 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
     src/action.cpp!
     """
 
-    _CppObjWrapper__lookup = {
+    _CxxWrapper__lookup = {
         (BMat8, BMat8, ImageRightAction, side.right): _RightActionBMat8BMat8,
         (BMat8, BMat8, ImageLeftAction, side.left): _LeftActionBMat8BMat8,
         (PPerm, PPerm, ImageRightAction, side.right): {
@@ -220,9 +220,9 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
         self._cpp_obj = cpp_obj_t()
 
         for x in self._generators:
-            self._cpp_obj.add_generator(to_cpp(x))
+            self._cpp_obj.add_generator(to_cxx(x))
         for x in self._seeds:
-            self._cpp_obj.add_seed(to_cpp(x))
+            self._cpp_obj.add_seed(to_cxx(x))
         self._cpp_obj.cache_scc_multipliers(self._cache_scc_multipliers)
         self._cpp_obj.reserve(self._reserve)
 
@@ -247,7 +247,7 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
     # TODO type annotations
     def index(self: Self, x) -> int:
         self._init_cpp_obj()
-        return getattr(self._cpp_obj, "position")(to_cpp(x))
+        return getattr(self._cpp_obj, "position")(to_cxx(x))
 
     def add_generator(self: Self, x: Any) -> Self:
         if not isinstance(x, self.Element):
@@ -267,7 +267,7 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
             )
 
         if self._cpp_obj is not None:
-            self._cpp_obj.add_generator(to_cpp(x))
+            self._cpp_obj.add_generator(to_cxx(x))
         else:
             self._generators.append(x)
         return self
@@ -279,7 +279,7 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
                 f"{self.Element} but found {type(x)}"
             )
         if self._cpp_obj is not None:
-            self._cpp_obj.add_seed(to_cpp(x))
+            self._cpp_obj.add_seed(to_cxx(x))
         else:
             # TODO check compatibility of x with things already in _seeds,
             # i.e. degree. Not currently sure how to do this
@@ -350,7 +350,7 @@ class Action(Runner):  # pylint: disable=invalid-name, too-many-instance-attribu
 
         self.run()
         if isinstance(x, self.Element):
-            x = to_cpp(x)
+            x = to_cxx(x)
         return self._cpp_obj.root_of_scc(x)
 
 

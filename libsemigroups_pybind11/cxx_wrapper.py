@@ -9,7 +9,7 @@
 # pylint: disable=no-member, protected-access
 
 """
-This package provides some functions and a class CppObjWrapper to help wrap
+This package provides some functions and a class CxxWrapper to help wrap
 multiple C++ types into a single python type. See:
 
     * action.py
@@ -28,11 +28,11 @@ from typing_extensions import Self
 from _libsemigroups_pybind11 import UNDEFINED as _UNDEFINED
 
 
-def to_cpp(x: Any) -> Any:
+def to_cxx(x: Any) -> Any:
     """
-    This function returns x._cpp_obj if x is a CppObjWrapper, and x o/w.
+    This function returns x._cpp_obj if x is a CxxWrapper, and x o/w.
     """
-    if isinstance(x, CppObjWrapper):
+    if isinstance(x, CxxWrapper):
         return x._cpp_obj
     return x
 
@@ -46,7 +46,7 @@ def to_py(Element: Any, x: Any, *args) -> Any:  # pylint: disable=invalid-name
     return x
 
 
-class CppObjWrapper:
+class CxxWrapper:
     # pylint: disable=missing-class-docstring
     # pylint: disable=protected-access, no-member, too-few-public-methods
 
@@ -57,8 +57,8 @@ class CppObjWrapper:
         def cxx_fn_wrapper(*args) -> Any:
             if len(args) == 1 and isinstance(args[0], list):
                 args = args[0]
-                return getattr(self._cpp_obj, meth_name)([to_cpp(x) for x in args])
-            return getattr(self._cpp_obj, meth_name)(*(to_cpp(x) for x in args))
+                return getattr(self._cpp_obj, meth_name)([to_cxx(x) for x in args])
+            return getattr(self._cpp_obj, meth_name)(*(to_cxx(x) for x in args))
 
         return cxx_fn_wrapper
 
@@ -82,7 +82,7 @@ class CppObjWrapper:
         if not isinstance(lookup[py_types], dict):
             return lookup[py_types]
         lookup = lookup[py_types]
-        cpp_types = tuple([type(to_cpp(x)) for x in samples] + list(types))
+        cpp_types = tuple([type(to_cxx(x)) for x in samples] + list(types))
         if cpp_types not in lookup:
             raise ValueError(
                 f"unexpected keyword argument combination {cpp_types}, "
