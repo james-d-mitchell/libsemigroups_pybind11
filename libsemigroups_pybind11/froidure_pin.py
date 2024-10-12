@@ -14,16 +14,17 @@ FroidurePin.
 """
 
 from typing import Self, List, TypeVar, Iterator
+from accepts import accepts
 
 from .detail._cxx_wrapper import (
     to_cxx,
     to_py,
     CxxWrapper,
     may_return_undefined,
+    accepts_word,
 )
 
 from .transf import Transf, PPerm, Perm
-from .tools import copydoc
 
 from _libsemigroups_pybind11 import (
     FroidurePinBase,
@@ -79,6 +80,15 @@ from _libsemigroups_pybind11 import (
 Element = TypeVar("Element")
 
 
+def _validate_args(args, types):
+    for pos, (arg, required_types) in enumerate(zip(args, types)):
+        print(pos)
+        print(arg)
+        print(required_types)
+        if not isinstance(arg, required_types):
+            raise TypeError("TODO")
+
+
 class FroidurePin(CxxWrapper):
     __doc__ = _FroidurePinPBR.__doc__
 
@@ -114,22 +124,41 @@ class FroidurePin(CxxWrapper):
             result = method(self, *args)
             return to_py(self.Element, result, self.degree())
 
+        wrapper.__name__ = method.__name__
         return wrapper
 
     @staticmethod
-    def _accepts_element(method):
-        def wrapper(self, *args):
-            if hasattr(self, "Element"):
-                for i, x in enumerate(*args):
-                    if not isinstance(x, self.Element):
+    def _accepts_element_or(*types):
+        def check_accepts(f):
+            def new_f(self, *args):
+                if hasattr(self, "Element"):
+                    new_types = ((self.Element,) + types,)
+                    # TODO if types is a tuple of tuples, then add self.Element
+                    # to the start of every tuple in types
+                else:
+                    new_types = types
+                for pos, (arg, required_types) in enumerate(zip(args, new_types)):
+                    if not isinstance(arg, required_types):
                         raise TypeError(
-                            f"expected arguments of type {self.Element}, but "
-                            f"argument {i} is of type {type(x)}"
+                            f"expected arguments of type {required_types}, but "
+                            f"argument {pos} is of type {type(arg)}"
                         )
-            result = method(self, *args)
-            return to_py(self.Element, result, self.degree())
+                    if (
+                        hasattr(self, "Element")
+                        and isinstance(arg, self.Element)
+                        and arg.degree() != self.degree()
+                    ):
+                        raise ValueError(
+                            f"expected argument of type {self.Element} of degree "
+                            f"{self.degree()}, but found degree {arg.degree()}"
+                        )
 
-        return wrapper
+                return f(self, *args)
+
+            new_f.__name__ = f.__name__
+            return new_f
+
+        return check_accepts
 
     def __init__(self: Self, *args) -> None:  # pylint: disable=super-init-not-called
         if len(args) == 0:
@@ -167,7 +196,7 @@ class FroidurePin(CxxWrapper):
     def generator(self: Self, i: int) -> Element:
         return getattr(self._cxx_obj, "generator")(i)
 
-    @_accepts_element
+    @_accepts_element_or(list)
     @may_return_undefined
     def current_position(self: Self, x: Element | List[int]) -> int:
         return getattr(self._cxx_obj, "current_position")(to_cxx(x))
@@ -178,6 +207,7 @@ class FroidurePin(CxxWrapper):
             getattr(self._cxx_obj, "idempotents")(),
         )
 
+    @_accepts_element_or(list)
     @may_return_undefined
     def position(self: Self, x: Element | List[int]) -> int:
         return getattr(self._cxx_obj, "position")(to_cxx(x))
@@ -192,6 +222,7 @@ class FroidurePin(CxxWrapper):
             getattr(self._cxx_obj, "sorted_elements")(),
         )
 
+    @accepts_word
     @_returns_element
     def to_element(self: Self, w: List[int]) -> Element:
-        return getattr(self._cxx_obj, "to_element")(w)
+        return self._cxx_obj.to_element(w)

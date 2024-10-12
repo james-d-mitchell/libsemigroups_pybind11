@@ -786,7 +786,7 @@ if *x* is not an element.
 
       thing.def("to_element",
                 &FroidurePin_::to_element,
-                py::arg("w"),
+                py::arg("w").noconvert(),
                 R"pbdoc(
 Convert a word in the generators to an element.
 

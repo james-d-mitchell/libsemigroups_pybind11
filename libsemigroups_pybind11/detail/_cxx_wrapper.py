@@ -134,6 +134,21 @@ class CxxWrapper(metaclass=abc.ABCMeta):
 # Decorators
 
 
+# Only check that the arg is a list because the checking of the items is done
+# by pybind11
+def accepts_word(f):
+    """TODO"""
+
+    def new_f(self, w):
+        # TODO count args = f count_args
+        if not isinstance(w, list):
+            raise TypeError(f"expect the argument to be a list, but found {type(w)}")
+
+        return f(self, w)
+
+    return new_f
+
+
 def may_return_undefined(func):
     """
     This function is a decorator for functions/methods that might return
