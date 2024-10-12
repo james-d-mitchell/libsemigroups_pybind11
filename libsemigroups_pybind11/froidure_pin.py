@@ -116,8 +116,22 @@ class FroidurePin(CxxWrapper):
 
         return wrapper
 
-    @copydoc(_FroidurePinPBR.__init__)
-    def __init__(self: Self, *args) -> None:
+    @staticmethod
+    def _accepts_element(method):
+        def wrapper(self, *args):
+            if hasattr(self, "Element"):
+                for i, x in enumerate(*args):
+                    if not isinstance(x, self.Element):
+                        raise TypeError(
+                            f"expected arguments of type {self.Element}, but "
+                            f"argument {i} is of type {type(x)}"
+                        )
+            result = method(self, *args)
+            return to_py(self.Element, result, self.degree())
+
+        return wrapper
+
+    def __init__(self: Self, *args) -> None:  # pylint: disable=super-init-not-called
         if len(args) == 0:
             raise ValueError("expected at least 1 argument, found 0")
         if isinstance(args[0], list) and len(args) == 1:
@@ -153,6 +167,7 @@ class FroidurePin(CxxWrapper):
     def generator(self: Self, i: int) -> Element:
         return getattr(self._cxx_obj, "generator")(i)
 
+    @_accepts_element
     @may_return_undefined
     def current_position(self: Self, x: Element | List[int]) -> int:
         return getattr(self._cxx_obj, "current_position")(to_cxx(x))
