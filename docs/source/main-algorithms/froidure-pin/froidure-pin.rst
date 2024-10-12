@@ -27,7 +27,6 @@ Contents
    FroidurePinPBR.copy_closure
    FroidurePinPBR.current_position
    FroidurePinPBR.equal_to
-   FroidurePinPBR.factorisation
    FroidurePinPBR.fast_product
    FroidurePinPBR.generator
    FroidurePinPBR.idempotents

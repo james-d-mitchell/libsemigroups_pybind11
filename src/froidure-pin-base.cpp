@@ -34,9 +34,9 @@ namespace libsemigroups {
     py::class_<FroidurePinBase, Runner> thing(m,
                                               "FroidurePinBase",
                                               R"pbdoc(
-Base class for :any:`FroidurePin` containing non-element specific data and
+Base class for :any:`FroidurePinPBR` containing non-element specific data and
 member functions. :any:`FroidurePinBase` is an abstract class which cannot be
-instantiated directly, only via the derived class :any:`FroidurePin`.)pbdoc");
+instantiated directly, only via the derived class :any:`FroidurePinPBR`.)pbdoc");
 
     thing.def(
         "batch_size",
@@ -54,27 +54,25 @@ This function returns the minimum number of elements enumerated in any call to
 )pbdoc");
     thing.def(
         "batch_size",
-        [](FroidurePinBase& self, size_t batch_size) -> FroidurePinBase& {
-          return self.batch_size(batch_size);
+        [](FroidurePinBase& self, size_t val) -> FroidurePinBase& {
+          return self.batch_size(val);
         },
-        py::arg("batch_size"),
+        py::arg("val"),
         R"pbdoc(
 Set a new value for the batch size.
 
 The *batch size* is the number of new elements to be found by any call to
-:any:`run` . This is used by, for example, :any:`FroidurePin::position` so
+:any:`run` . This is used by, for example, :any:`FroidurePinPBR.position` so
 that it is possible to find the position of an element after only partially
 enumerating the semigroup.The default value of the batch size is ``8192``.
 
-:param batch_size: the new value for the batch size.
-:type batch_size: int
+:param val: the new value for the batch size.
+:type val: int
 
-:returns: A reference to ``self``.
+:returns: ``self``.
 :rtype: FroidurePinBase
 
-
 :complexity: Constant.
-.. seealso::  :any:`batch_size`.
 )pbdoc");
 
     thing.def(
@@ -87,7 +85,7 @@ enumerating the semigroup.The default value of the batch size is ``8192``.
 Returns an iterator containing the so-far enumerated normal forms (if any).
 This function returns an iterator pointing at the normal form of the first
 element of the semigroup represented by a :any:`FroidurePinBase` instance (if
-any). This function does not perform any enumeration of the :any:`FroidurePin`.
+any). This function does not perform any enumeration of the :any:`FroidurePinPBR`.
 If you want to obtain the complete set of rules, then use :any:`normal_forms`
 instead.
 
@@ -111,7 +109,7 @@ Returns an iterator containing the so-far enumerated rules.
 Returns an iterator containing the rules in a confluent
 terminating rewriting system defining a semigroup isomorphic to the one
 defined by ``self``. This function does not perform any enumeration of the
-:any:`FroidurePin` object. If you want to obtain the complete set of rules,
+:any:`FroidurePinPBR` object. If you want to obtain the complete set of rules,
 then use :any:`rules` instead.
 
 :returns:
@@ -120,7 +118,6 @@ then use :any:`rules` instead.
 
 :complexity: Constant
 
-.. TODO change the next line to doctest when FroidurePin available
 .. code-block:: c++
 
     >>> S = FroidurePin(
@@ -143,6 +140,22 @@ then use :any:`rules` instead.
     >>> S.size()
     4
     >>> list(S.rules())
+    [([0, 0], [0]),
+     ([0, 1], [1]),
+     ([0, 2], [2]),
+     ([0, 3], [3]),
+     ([1, 0], [0]),
+     ([1, 1], [1]),
+     ([1, 2], [2]),
+     ([1, 3], [3]),
+     ([2, 0], [0]),
+     ([2, 1], [1]),
+     ([2, 2], [2]),
+     ([2, 3], [3]),
+     ([3, 0], [0]),
+     ([3, 1], [1]),
+     ([3, 2], [2]),
+     ([3, 3], [3])]
 )pbdoc");
 
     thing.def(
@@ -155,7 +168,7 @@ then use :any:`rules` instead.
 Returns an iterator yielding normal forms. This function returns an iterator
 yielding normal forms for the elements of the semigroup represented by a
 :any:`FroidurePinBase` instance. This function performs a full
-enumeration of the :any:`FroidurePin`. If you want to obtain the current
+enumeration of the :any:`FroidurePinPBR`. If you want to obtain the current
 normal forms without triggering an enumeration, then use
 :any:`current_normal_forms` instead.
 
@@ -179,7 +192,7 @@ Returns an iterator yielding the so-far enumerated rules.
 Returns an iterator yielding the rules in a confluent
 terminating rewriting system defining a semigroup isomorphic to the one
 defined by ``self``. This function performs a full enumeration of the
-:any:`FroidurePin` object. If you want to obtain the current set of rules
+:any:`FroidurePinPBR` object. If you want to obtain the current set of rules
 without triggering any enumeration, then use :any:`current_rules` instead.
 
 :returns:
@@ -205,7 +218,7 @@ enumerated so-far. No enumeration is triggered by calls to this function.
 :complexity:
   At worst :math:`O(|S|n)` where :math:`S` is the semigroup represented by
   ``self``, and :math:`n` is the return value of
-  :any:`FroidurePin.number_of_generators`.
+  :any:`FroidurePinPBR.number_of_generators`.
 )pbdoc");
 
     thing.def("current_length",
@@ -275,7 +288,7 @@ by calling this function.
 
 :complexity:
   At worst :math:`O(mn)` where :math:`m` equals *pos* and
-  :math:`n` is the return value of :any:`FroidurePin.number_of_generators`.
+  :math:`n` is the return value of :any:`FroidurePinPBR.number_of_generators`.
 )pbdoc");
     thing.def("current_number_of_rules",
               &FroidurePinBase::current_number_of_rules,
@@ -298,7 +311,7 @@ defining the semigroup if the semigroup is fully enumerated.
 
 Returns a const reference to the right Cayley graph. This function
 triggers a full enumeration, and then returns the right Cayley graph of
-the semigroup represented by a :any:`FroidurePin` instance.
+the semigroup represented by a :any:`FroidurePinPBR` instance.
 
 :returns:
   The full enumerated right Cayley graph.
@@ -346,15 +359,12 @@ previously enumerated exceeds *limit*, then calling this function does
 nothing. Otherwise, :any:`run` attempts to find at least the maximum of
 *limit* and :any:`batch_size` elements of the semigroup.
 
-:param limit: the limit for current_size.
+:param limit: the limit.
 :type limit: int
-
-:exceptions:
-  This function guarantees not to throw a :any:`LibsemigroupsError`.
 
 :complexity:
   At worst :math:`O(mn)` where :math:`m` equals *limit* and :math:`n` is the
-  return value of :any:`FroidurePin.number_of_generators`.)pbdoc");
+  return value of :any:`FroidurePinPBR.number_of_generators`.)pbdoc");
 
     thing.def("final_letter",
               &FroidurePinBase::final_letter,
@@ -417,15 +427,15 @@ Check if the semigroup is a monoid.
 :complexity:
   At worst :math:`O(|S|n)` where :math:`S` is the semigroup represented
   by ``self`` , and :math:`n` is the return value of
-  :any:`FroidurePin.number_of_generators`.
+  :any:`FroidurePinPBR.number_of_generators`.
 )pbdoc");
     thing.def("left_cayley_graph",
               &FroidurePinBase::left_cayley_graph,
               R"pbdoc(
-Returns the left Cayley graph. This function
-triggers a full enumeration, and then returns the left Cayley graph of
-the semigroup represented by a :any:`FroidurePin` instance.
+Returns the left Cayley graph.
 
+This function triggers a full enumeration, and then returns the left Cayley
+graph of the semigroup represented by a :any:`FroidurePinPBR` instance.
 
 :complexity:
   constant.
@@ -477,7 +487,7 @@ Returns a short-lex least word representing an element given by index.
 
 :complexity:
   At worst :math:`O(mn)` where :math:`m` equals ``pos`` and :math:`n` is the
-  return value of :any:`FroidurePin.number_of_generators`.
+  return value of :any:`FroidurePinPBR.number_of_generators`.
 )pbdoc");
 
     thing.def(
@@ -538,7 +548,7 @@ This function triggers a full enumeration of the semigroup.
 :complexity:
   At worst :math:`O(|S|n)` where :math:`S` is the semigroup represented by
   ``self`` , and :math:`n` is the return value of
-  :any:`FroidurePin.number_of_generators`.
+  :any:`FroidurePinPBR.number_of_generators`.
 )pbdoc");
     thing.def("prefix",
               &FroidurePinBase::prefix,
@@ -574,14 +584,14 @@ Returns the fully enumerated right Cayley graph.
 :complexity:
   At worst :math:`O(|S|n)` where :math:`S` is the semigroup represented
   by ``self``, and :math:`n` is the return value of
-  :any:`FroidurePin.number_of_generators`.
+  :any:`FroidurePinPBR.number_of_generators`.
 
 )pbdoc");
 
     thing.def("size",
               &FroidurePinBase::size,
               R"pbdoc(
-Returns the size of the semigroup represented by a FroidurePin instance.
+Returns the size of the semigroup represented by a :any:`FroidurePinPBR` instance.
 
 :returns:
   The size of the semigroup.
@@ -591,7 +601,7 @@ Returns the size of the semigroup represented by a FroidurePin instance.
 :complexity:
   At worst :math:`O(|S|n)` where :math:`S` is the semigroup represented
   by ``self``, and :math:`n` is the return value of
-  :any:`FroidurePin.number_of_generators`.
+  :any:`FroidurePinPBR.number_of_generators`.
 )pbdoc");
 
     thing.def("suffix",

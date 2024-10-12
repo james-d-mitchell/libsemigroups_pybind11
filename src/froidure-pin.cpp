@@ -46,33 +46,76 @@ namespace libsemigroups {
                                                       R"pbdoc(
 Class implementing the Froidure-Pin algorithm.
 
-The class :any:`FroidurePinPBR` implements the Froidure-Pin algorithm as described
-in the article :cite:`Froidure1997aa`. A :any:`FroidurePinPBR` instance is defined
-by a generating set, and the main function is :any:`run`, which implements the
-Froidure-Pin Algorithm. If :any:`run` is invoked and :any:`finished` returns
-``True``, then the size :any:`size`, the left and right Cayley graphs
-:any:`left_cayley_graph` and :any:`right_cayley_graph` are determined, and a
-confluent terminating presentation :any:`rules` for the semigroup is known.
+A :any:`FroidurePinPBR` instance represents a semigroup or monoid defined by a
+collection of generators such as transformations, partial permutations, or
+matrices.
+
+In the following documentation the type of the elements of the semigroup
+represented by a :any:`FroidurePinBase` instance is denoted by ``Element``.
+
+The class :any:`FroidurePinPBR` implements the Froidure-Pin algorithm as
+described in the article :cite:`Froidure1997aa`. A :any:`FroidurePinPBR`
+instance is defined by a generating set, and the main function is :any:`run`,
+which implements the Froidure-Pin Algorithm. If :any:`run` is invoked and
+:any:`finished` returns ``True``, then the size :any:`FroidurePinBase.size`,
+the left and right Cayley graphs :any:`FroidurePinBase.left_cayley_graph` and
+:any:`FroidurePinBase.right_cayley_graph` are determined, and a confluent
+terminating presentation :any:`FroidurePinBase.rules` for the semigroup is
+known.
+
+.. seealso::  :any:`FroidurePinBase` and :any:`Runner`.
 )pbdoc");
       thing.def("__repr__", [](FroidurePin_ const& x) {
         return to_human_readable_repr(x);
       });
       thing.def("__getitem__", &FroidurePin_::at, py::is_operator());
-      thing.def("__iter__", [](FroidurePin_ const& self) {
-        // TODO(0) should we call run() here?
-        // and impl current_elements?
+      thing.def("__iter__", [](FroidurePin_& self) {
+        self.run();
         return py::make_iterator(self.begin(), self.end());
       });
+      thing.def(
+          "current_elements",
+          [](FroidurePin_ const& self) {
+            return py::make_iterator(self.begin(), self.end());
+          },
+          R"pbdoc(
+Returns an iterator yielding the so-far enumerated elements.
+
+This function returns an iterator yielding the so-far enumerated elements.
+Calling this function does not trigger any enumeration.
+
+:param self: the :any:`FroidurePinPBR` instance.
+:type self: FroidurePinPBR
+
+:returns: An iterator yielding the so-far enumerated elements.
+:rtype: Iterator
+)pbdoc");
       thing.def(py::init([](std::vector<Element> const& gens) {
                   return to_froidure_pin(gens);
                 }),
+                py::arg("gens"),
                 R"pbdoc(
-TODO(0)
-                )pbdoc");
+Construct from a list of generators.
+
+This function constructs a :any:`FroidurePinPBR` instance with generators
+in the list *gens*.
+
+:param gens: the list of generators.
+:type gens: List[Element]
+
+:raises LibsemigroupsError: if the generators do not all have the same degree.
+)pbdoc");
       thing.def("__copy__",
                 [](FroidurePin_ const& self) { return FroidurePin_(self); });
-      thing.def("copy",
-                [](FroidurePin_ const& self) { return FroidurePin_(self); });
+      thing.def(
+          "copy",
+          [](FroidurePin_ const& self) { return FroidurePin_(self); },
+          R"pbdoc(
+Copy a :any:`FroidurePinPBR` object.
+
+:returns: A copy.
+:rtype: FroidurePinPBR
+)pbdoc");
       thing.def("add_generator",
                 &FroidurePin_::add_generator,
                 py::arg("x"),
@@ -103,7 +146,7 @@ elements than before (whether it is fully enumerating or not).
 :type x: Element
 
 :returns: ``self``
-:rtype: FroidurePin
+:rtype: FroidurePinPBR
 
 :raises LibsemigroupsError:
    if the degree of *x* is incompatible with the existing degree (if
@@ -124,7 +167,7 @@ See :any:`add_generator` for a detailed description.
 :type gens: List[Element]
 
 :returns: ``self``.
-:rtype: FroidurePin
+:rtype: FroidurePinPBR
 
 :raises LibsemigroupsError:
   if the degree of any element in *gens* is incompatible with the existing
@@ -170,13 +213,20 @@ instance.
           R"pbdoc(
 Add non-redundant generators in collection.
 
-See :any:`FroidurePin::closure_no_checks` for full details.
+This function differs from :any:`FroidurePinPBR.add_generators` in that it
+tries to add the new generators one by one, and only adds those generators that
+are not products of existing generators (including any new generators that were
+added before). The generators are added in the order they occur in *gens*.
+
+This function changes a :any:`FroidurePinPBR` instance in-place, thereby invalidating
+some previously computed information, such as the left or right Cayley graphs,
+or number of idempotents, for example.
 
 :param gens: the list of generators.
 :type gens: List[Element]
 
 :returns: ``self``.
-:rtype: FroidurePin
+:rtype: FroidurePinPBR
 
 :raises LibsemigroupsError:
     if any of the elements in *gens* do not have degree compatible with any
@@ -191,13 +241,15 @@ See :any:`FroidurePin::closure_no_checks` for full details.
                 R"pbdoc(
 Test membership of an element.
 
-This function returns ``True`` if ``x`` belongs to ``self`` and ``False`` if it does
-not.
+This function returns ``True`` if *x* belongs to a :any:`FroidurePinPBR`
+instance and ``False`` if it does not.
 
 :param x: a possible element.
 :type x: Element
 
-:returns: Whether or not the element *x* is contained in a FroidurePin instance.
+:returns:
+  Whether or not the element *x* is contained in a :any:`FroidurePinPBR`
+  instance.
 :rtype: bool
       )pbdoc");
       thing.def(
@@ -210,7 +262,10 @@ not.
           R"pbdoc(
 Copy and add a collection of generators.
 
-See :any:`copy_add_generators_no_checks` for a full description.
+This function is equivalent to copy constructing a new :any:`FroidurePinPBR`
+instance and  then calling :any:`FroidurePinPBR.add_generators` on the copy.
+But this function avoids copying the parts of the initial instance that are
+immediately invalidated by :any:`FroidurePinPBR.add_generators`.
 
 :param gens: the list of generators.
 :type gens: List[Element]
@@ -219,7 +274,7 @@ See :any:`copy_add_generators_no_checks` for a full description.
    A new :any:`FroidurePinPBR` instance by value generated by the generators of
    *self* and *gens*.
 :rtype:
-   FroidurePin
+   FroidurePinPBR
 
 :raises LibsemigroupsError:
     if any of the elements in *gens* do not have degree compatible with any
@@ -241,7 +296,7 @@ Copy and add non-redundant generators.
 
 This function is equivalent to copy constructing a new :any:`FroidurePinPBR`
 instance and then calling :any:`closure` on the copy. But this function
-avoids copying the parts of the initial FroidurePin instance that are
+avoids copying the parts of the initial :any:`FroidurePinPBR` instance that are
 immediately discarded by :any:`closure`.
 
 :param gens: the list of generators.
@@ -251,7 +306,7 @@ immediately discarded by :any:`closure`.
    A new :any:`FroidurePinPBR` instance by value generated by the generators of
    *self* and the non-redundant generators in *gens*.
 :rtype:
-   FroidurePin
+   FroidurePinPBR
 
 :raises LibsemigroupsError:
     if any of the elements in *gens* do not have degree compatible with any
@@ -281,7 +336,7 @@ may return :any:`UNDEFINED` when *x* does belong to the fully enumerated instanc
 :type x: Element
 
 :returns:
-    The position of *x* if it belongs to a FroidurePin instance and
+    The position of *x* if it belongs to a :any:`FroidurePinPBR` instance and
     :any:`UNDEFINED` if not.
 :rtype: int | UNDEFINED
 
@@ -294,8 +349,6 @@ may return :any:`UNDEFINED` when *x* does belong to the fully enumerated instanc
           },
           py::arg("w"),
           R"pbdoc(
-:sig=(self: FroidurePinBase, w: List[int]) -> int:
-
 Returns the position corresponding to a word.
 
 Returns the position in the semigroup corresponding to the element
@@ -312,7 +365,7 @@ determined.
 :rtype: int
 
 :raises LibsemigroupsError:
-  if *w* contains an value exceeding :any:`FroidurePin.number_of_generators`.
+  if *w* contains an value exceeding :any:`FroidurePinPBR.number_of_generators`.
 
 :complexity: :math:`O(n)` where :math:`n` is the length of the word *w*.
 )pbdoc");
@@ -330,7 +383,7 @@ In many cases ``current_position(i)`` will equal *i*, examples of when this
 will not be the case are:
 
 * there are duplicate generators;
-* :any:`FroidurePin::add_generators` was called after the semigroup was
+* :any:`FroidurePinPBR.add_generators` was called after the semigroup was
   already partially enumerated.
 
 :param i: the index of the generator.
@@ -340,7 +393,7 @@ will not be the case are:
 :rtype: int
 
 :raises LibsemigroupsError:
-  if *i* is greater than or equal to :any:`FroidurePin.number_of_generators`.
+  if *i* is greater than or equal to :any:`FroidurePinPBR.number_of_generators`.
 
 :complexity: Constant.
 )pbdoc");
@@ -399,8 +452,6 @@ is that the resulting factorisation may not be minimal.
           },
           py::arg("pos"),
           R"pbdoc(
-:sig=(self: FroidurePinBase, pos: int) -> List[int]:
-
 Returns a word representing an element given by index.
 
 This is the same as the two-argument member function for :any:`factorisation` ,
@@ -416,11 +467,11 @@ minimal.
 :rtype: List[int]
 
 :raises LibsemigroupsError:
-  if *pos* is greater than or equal to :any:`size`.
+  if *pos* is greater than or equal to :any:`FroidurePinBase.size`.
 
 :complexity:
   At worst :math:`O(mn)` where :math:`m` equals *pos* and
-  :math:`n` is the return value of :any:`FroidurePin.number_of_generators`.
+  :math:`n` is the return value of :any:`FroidurePinPBR.number_of_generators`.
 )pbdoc");
 
       thing.def("fast_product",
@@ -430,7 +481,22 @@ minimal.
                 R"pbdoc(
 Multiply elements via their indices.
 
-See :any:`fast_product_no_checks` for a full description.
+This function returns the position of the product of the element with
+index *i* and the element with index *j*.
+
+This function either:
+
+* follows the path in the right or left Cayley graph from *i* to *j*,
+  whichever is shorter using \ref froidure_pin::product_by_reduction; or
+
+* multiplies the elements in positions *i* and *j* together;
+
+whichever is better.
+
+For example, if the complexity of the multiplication is linear and ``self`` is
+a semigroup of transformations of degree 20, and the shortest paths in the left
+and right Cayley graphs from *i* to *j* are of length 100 and 1131, then it is
+better to just multiply the transformations together.
 
 :param i: the index of the first element to multiply.
 :type i: int
@@ -442,7 +508,8 @@ See :any:`fast_product_no_checks` for a full description.
 :rtype: int
 
 :raises LibsemigroupsError:
-    if the values *i* and *j* are greater than or equal to :any:`current_size`.
+    if the values *i* and *j* are greater than or equal to
+    :any:`FroidurePinBase.current_size`.
 )pbdoc");
 
       thing.def("generator",
@@ -468,16 +535,15 @@ is that in which the generators were added at construction, or via
 
       thing.def(
           "init",
-          [](FroidurePin_& self) { return self.init(); },
+          [](FroidurePin_& self) -> FroidurePin_& { return self.init(); },
           R"pbdoc(
-Reinitialize a FroidurePin object. This function re-initializes a
-:any:`FroidurePinPBR` object so that it is in the same state as if it had
-just been default constructed.
+Reinitialize a :any:`FroidurePinPBR` object.
 
-:returns:
-   ``self``.
-:rtype:
-   FroidurePin
+This function re-initializes a :any:`FroidurePinPBR` object so that it is in
+the same state as if it had just been default constructed.
+
+:returns: ``self``
+:rtype: FroidurePinPBR
 )pbdoc");
 
       thing.def(
@@ -489,8 +555,7 @@ just been default constructed.
           },
           py::arg("gens"),
           R"pbdoc(
-Reinitialize a FroidurePin object from a range of generators given by
-iterators.
+Reinitialize a :any:`FroidurePinPBR` object from a list of generators.
 
 This function re-initializes a :any:`FroidurePinPBR` object so that it is
 in the same state as if it had just been constructed from *gens*.
@@ -498,10 +563,8 @@ in the same state as if it had just been constructed from *gens*.
 :param gens: the generators.
 :type gens: List[Element]
 
-:returns:
- ``self``.
- rtype:
-  FroidurePin
+:returns: ``self``.
+:rtype: FroidurePinPBR
 
 :raises LibsemigroupsError:
     if the elements in *gens* do not all have the same degree.
@@ -512,15 +575,15 @@ in the same state as if it had just been constructed from *gens*.
                 R"pbdoc(
 Check finiteness.
 
-This function returns :any:`tril::TRUE` if the semigroup represented by ``self`` is finite,
-:any:`tril::FALSE` if it is infinite, and :any:`tril::unknown` if it is not
-known. For some types of elements, such as matrices over the integers, for
-example, it is undecidable, in general, if the semigroup generated by these
+This function returns :any:`tril.TRUE` if the semigroup represented by ``self``
+is finite, :any:`tril.FALSE` if it is infinite, and :any:`tril.unknown` if it
+is not known. For some types of elements, such as matrices over the integers,
+for example, it is undecidable, in general, if the semigroup generated by these
 elements is finite or infinite. On the other hand, for other types, such as
 transformation, the semigroup is always finite.
 
 :returns:
-   If the FroidurePin object is finite, or not finite, or it isn't possible to
+   If the :any:`FroidurePinPBR` object is finite, or not finite, or it isn't possible to
    answer this question without performing a full enumeration.
 :rtype:
    tril
@@ -568,9 +631,6 @@ that evaluates to *x*.
 :raises LibsemigroupsError:
   if *x* does not belong to the :any:`FroidurePinPBR` instance.
 )pbdoc");
-      // TODO the other overloaded functions where one overload is in
-      // FroidurePinBase and the other in FroidurePin must be redeclared here,
-      // otherwise they don't show up in python
       thing.def(
           "minimal_factorisation",
           [](FroidurePin_& self, size_t i) {
@@ -578,7 +638,21 @@ that evaluates to *x*.
           },
           py::arg("i"),
           R"pbdoc(
-    TODO
+Returns a word containing a minimal factorisation (in the generators)
+of an element given by its index.
+
+This function returns the short-lex minimum word (if any) in the generators
+that evaluates to the *i*-th element.
+
+:param i: the index of the element.
+:type x: int
+
+:returns: A word in the generators that evaluates to the element with index *i*.
+:rtype: List[int]
+
+:raises LibsemigroupsError:
+  if *i* is greater than or equal to the return value of
+  :any:`FroidurePinBase.size`.
 )pbdoc");
 
       thing.def("number_of_generators",
@@ -586,7 +660,7 @@ that evaluates to *x*.
                 R"pbdoc(
 Returns the number of generators.
 
-This function returns the number of generators of a FroidurePin instance.
+This function returns the number of generators of a :any:`FroidurePinPBR` instance.
 
 :returns:
    The number of generators.
@@ -621,7 +695,7 @@ This function the position of *x* in a :any:`FroidurePinPBR` instance, or
 :param x: a possible element.
 :type x: Element
 
-:returns: The position of \p x.
+:returns: The position of *x*.
 :rtype: int | UNDEFINED
 
 .. seealso::  :any:`current_position` and :any:`sorted_position`.
@@ -633,8 +707,23 @@ This function the position of *x* in a :any:`FroidurePinPBR` instance, or
           },
           py::arg("w"),
           R"pbdoc(
+Returns the position corresponding to a word.
 
-       TODODO
+Returns the position in the semigroup corresponding to the element
+represented by the word *w*. This function returns the position
+corresponding to the element obtained by evaluating the word in the
+generators *w*. A full enumeration is triggered by calls to this function.
+
+:param w: a word in the generators.
+:type w: List[int]
+
+:returns: The position of the element represented by a word.
+:rtype: int
+
+:raises LibsemigroupsError:
+  if *w* contains an value exceeding :any:`FroidurePinPBR.number_of_generators`.
+
+:complexity: :math:`O(n)` where :math:`n` is the length of the word *w*.
       )pbdoc");
 
       thing.def("reserve",
@@ -653,7 +742,7 @@ the :any:`run` function, and consequently every other function too.
 :type val: int
 
 :returns: ``self``
-:rtype: FroidurePin
+:rtype: FroidurePinPBR
 )pbdoc");
 
       thing.def("sorted_at",
@@ -663,7 +752,7 @@ the :any:`run` function, and consequently every other function too.
 Access element specified by sorted index with bound checks.
 
 This function triggers a full enumeration, and the parameter *i* is
-the index when the elements are sorted by :any:`Less`.
+the index when the elements are sorted.
 
 :param i: the sorted index of the element to access.
 :type i: int
@@ -672,7 +761,8 @@ the index when the elements are sorted by :any:`Less`.
 :rtype: Element
 
 :raises LibsemigroupsError:
-  if *i* is greater than or equal to the return value of :any:`size()`.
+  if *i* is greater than or equal to the return value of
+  :any:`FroidurePinBase.size`.
 )pbdoc");
 
       thing.def("sorted_position",
@@ -722,21 +812,19 @@ This function returns the element obtained by evaluating *w*.
 Returns the sorted index of an element via its index.
 
 This function returns the position of the element with index *i* when the
-elements are sorted, or :any:`UNDEFINED` if *i* is
-greater than :any:`size()`.
+elements are sorted, or :any:`UNDEFINED` if *i* is greater than
+:any:`FroidurePinBase.size`.
 
 :param i: the index of the element.
 :type i: int
 
-:returns: The sorted position of a the element with position *i*.
+:returns: The sorted position of the element with position *i*.
 :rtype: int | UNDEFINED
  )pbdoc");
     }  // bind_froidure_pin
   }  // namespace
 
   void init_froidure_pin(py::module& m) {
-    // TODO use the same names as in transf, and really define them in
-    // transf.hpp (to be created)
     bind_froidure_pin<Transf<16, uint8_t>>(m, "Transf16");
     // TODO uncomment bind_froidure_pin<LeastTransf<16>>(m, "Transf16");
     bind_froidure_pin<Transf<0, uint8_t>>(m, "Transf1");

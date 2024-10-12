@@ -108,9 +108,9 @@ the submodule ``bmat8``.
 :any:`BMat8` objects can be used with the following algorithms in
 ``libsemigroups_pybind11``
 
-* :any:`FroidurePin`
+* :any:`FroidurePinPBR`
 * :any:`Konieczny`
-* :any:`Action`
+* :any:`RightActionPPerm16List`
 )pbdoc");
 
     thing2.def("__repr__", [](BMat8 const& x) { return to_string(x, "[]"); });

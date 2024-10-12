@@ -212,6 +212,7 @@ class_specific_replacements = {
         ("PTransfBase16", "StaticPerm16"),
         ("Transf", "StaticPerm16"),
     ],
+    "FroidurePinPBR": [(r"\bPBR\b", "Element")],
 }
 
 # This is what sphinx considers to be a signature
