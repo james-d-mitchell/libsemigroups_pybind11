@@ -6,7 +6,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 
-# pylint: disable=no-name-in-module, invalid-name
+# pylint: disable=no-name-in-module, invalid-name, missing-function-docstring
 
 """
 This package provides the user-facing python part of libsemigroups_pybind11 for
@@ -14,14 +14,13 @@ FroidurePin.
 """
 
 from typing import Self, List, TypeVar, Iterator
-from accepts import accepts
 
 from .detail._cxx_wrapper import (
     to_cxx,
     to_py,
     CxxWrapper,
     may_return_undefined,
-    accepts_word,
+    accepts_list,
 )
 
 from .transf import Transf, PPerm, Perm
@@ -127,6 +126,38 @@ class FroidurePin(CxxWrapper):
         wrapper.__name__ = method.__name__
         return wrapper
 
+    def raise_if_bad_degree(self: Self, x: Element) -> None:
+        if (
+            hasattr(self, "Element")
+            and self.Element is not _BMat8
+            and self.degree() is not None
+            and isinstance(x, self.Element)
+            and x.degree() != self.degree()
+        ):
+            raise ValueError(
+                f"expected argument of type {self.Element} of degree "
+                f"{self.degree()}, but found degree {x.degree()}"
+            )
+
+    @staticmethod
+    def _accepts_list_of_elements(method):
+        def wrapper(self: Self, gens: List[Element]) -> None:
+            if not isinstance(gens, List):
+                raise TypeError(
+                    f"expected the argument to be a list, but found {type(gens)}"
+                )
+            for i, x in enumerate(gens):
+                if hasattr(self, "Element") and not isinstance(x, self.Element):
+                    raise TypeError(
+                        f"expected the argument to be a list of {self.Element}, "
+                        f"but found {type(x)} in position {i}"
+                    )
+                self.raise_if_bad_degree(x)
+            return method(self, gens)
+
+        wrapper.__name__ = method.__name__
+        return wrapper
+
     @staticmethod
     def _accepts_element_or(*types):
         def check_accepts(f):
@@ -137,21 +168,15 @@ class FroidurePin(CxxWrapper):
                     # to the start of every tuple in types
                 else:
                     new_types = types
-                for pos, (arg, required_types) in enumerate(zip(args, new_types)):
+                for pos, (arg, required_types) in enumerate(
+                    zip(args, new_types)
+                ):
                     if not isinstance(arg, required_types):
                         raise TypeError(
                             f"expected arguments of type {required_types}, but "
                             f"argument {pos} is of type {type(arg)}"
                         )
-                    if (
-                        hasattr(self, "Element")
-                        and isinstance(arg, self.Element)
-                        and arg.degree() != self.degree()
-                    ):
-                        raise ValueError(
-                            f"expected argument of type {self.Element} of degree "
-                            f"{self.degree()}, but found degree {arg.degree()}"
-                        )
+                    self.raise_if_bad_degree(arg)
 
                 return f(self, *args)
 
@@ -160,7 +185,9 @@ class FroidurePin(CxxWrapper):
 
         return check_accepts
 
-    def __init__(self: Self, *args) -> None:  # pylint: disable=super-init-not-called
+    def __init__(
+        self: Self, *args
+    ) -> None:  # pylint: disable=super-init-not-called
         if len(args) == 0:
             raise ValueError("expected at least 1 argument, found 0")
         if isinstance(args[0], list) and len(args) == 1:
@@ -176,53 +203,66 @@ class FroidurePin(CxxWrapper):
 
     @_returns_element
     def __getitem__(self: Self, i: int) -> Element:
-        return getattr(self._cxx_obj, "__getitem__")(i)
+        return self._cxx_obj[i]
 
     def __iter__(self: Self) -> Iterator:
         if self.Element in (Transf, PPerm, Perm):
             return map(
                 lambda x: to_py(self.Element, x, self.degree()),
-                getattr(self._cxx_obj, "__iter__")(),
+                iter(self._cxx_obj),
             )
-        return map(
-            lambda x: to_py(self.Element, x),
-            getattr(self._cxx_obj, "__iter__")(),
-        )
+        return map(lambda x: to_py(self.Element, x), iter(self._cxx_obj))
 
     def degree(self: Self) -> int:
         return self._degree
 
+    @_accepts_element_or()
+    def add_generator(self: Self, x: Element) -> Self:
+        if self.number_of_generators() == 0:
+            self._degree = x.degree()
+        return self._cxx_obj.add_generator(to_cxx(x))
+
+    @_accepts_list_of_elements
+    def add_generators(self: Self, gens: List[Element]) -> Self:
+        if self.number_of_generators() == 0 and len(gens) != 0:
+            self._degree = gens[0].degree()
+        return self._cxx_obj.add_generators([to_cxx(x) for x in gens])
+
     @_returns_element
     def generator(self: Self, i: int) -> Element:
-        return getattr(self._cxx_obj, "generator")(i)
+        return self._cxx_obj.generator(i)
 
-    @_accepts_element_or(list)
+    @_accepts_element_or((list, int))
     @may_return_undefined
-    def current_position(self: Self, x: Element | List[int]) -> int:
-        return getattr(self._cxx_obj, "current_position")(to_cxx(x))
+    def current_position(self: Self, x: Element | List[int] | int) -> int:
+        return self._cxx_obj.current_position(to_cxx(x))
 
     def idempotents(self: Self) -> Iterator:
         return map(
             lambda x: to_py(self.Element, x, self.degree()),
-            getattr(self._cxx_obj, "idempotents")(),
+            self._cxx_obj.idempotents(),
         )
 
-    @_accepts_element_or(list)
+    def init(self: Self) -> Self:
+        self._degree = None
+        return self._cxx_obj.init()
+
+    @_accepts_element_or((list, int))
     @may_return_undefined
-    def position(self: Self, x: Element | List[int]) -> int:
-        return getattr(self._cxx_obj, "position")(to_cxx(x))
+    def position(self: Self, x: Element | List[int] | int) -> int:
+        return self._cxx_obj.position(to_cxx(x))
 
     @_returns_element
     def sorted_at(self: Self, i: int) -> Element:
-        return getattr(self._cxx_obj, "sorted_at")(i)
+        return self._cxx_obj.sorted_at(i)
 
     def sorted_elements(self: Self) -> Iterator:
         return map(
             lambda x: to_py(self.Element, x, self.degree()),
-            getattr(self._cxx_obj, "sorted_elements")(),
+            self._cxx_obj.sorted_elements(),
         )
 
-    @accepts_word
+    @accepts_list
     @_returns_element
     def to_element(self: Self, w: List[int]) -> Element:
         return self._cxx_obj.to_element(w)

@@ -148,9 +148,12 @@ elements than before (whether it is fully enumerating or not).
 :returns: ``self``
 :rtype: FroidurePinPBR
 
-:raises LibsemigroupsError:
-   if the degree of *x* is incompatible with the existing degree (if
-   any).)pbdoc");
+:raises ValueError:
+   if the degree of *x* is incompatible with the existing degree (if any).
+
+:raises TypeError:
+   if *x* is not of the same type as the existing generators (if any).
+   )pbdoc");
       thing.def(
           "add_generators",
           [](FroidurePin_&               self,
@@ -169,9 +172,15 @@ See :any:`add_generator` for a detailed description.
 :returns: ``self``.
 :rtype: FroidurePinPBR
 
-:raises LibsemigroupsError:
-  if the degree of any element in *gens* is incompatible with the existing
-  degree.)pbdoc");
+:raises TypeError:
+   if *gens* is not a list.
+
+:raises TypeError:
+   if any item in *gens* is not of the same type as the existing generators (if any).
+
+:raises ValueError:
+   if the degree of any item in *gens* is incompatible with the existing degree (if any).
+)pbdoc");
       thing.def(
           "idempotents",
           [](FroidurePin_& self) {

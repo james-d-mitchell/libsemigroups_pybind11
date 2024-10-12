@@ -100,12 +100,14 @@ def check_mem_compare(S):
     # self.assertEqual(
     #     [S.position(S.factorisation(x)) for x in S], list(range(S.size()))
     # )
-    assert [S.current_position(S.factorisation(x)) for x in S] == list(range(S.size()))
+    assert [S.current_position(S.factorisation(x)) for x in S] == list(
+        range(S.size())
+    )
 
     assert [S.current_position(x) for x in S] == list(range(S.size()))
-    assert [S.current_position(x) for x in range(S.number_of_generators())] == list(
-        range(S.number_of_generators())
-    )
+    assert [
+        S.current_position(x) for x in range(S.number_of_generators())
+    ] == list(range(S.number_of_generators()))
 
     for x in S:
         assert S.sorted_position(x) == S.to_sorted_position(S.position(x))
@@ -465,7 +467,9 @@ def test_froidure_pin_min_plus(checks_for_froidure_pin, checks_for_generators):
         check(FroidurePin(gens))
 
 
-def test_froidure_pin_proj_max_plus(checks_for_froidure_pin, checks_for_generators):
+def test_froidure_pin_proj_max_plus(
+    checks_for_froidure_pin, checks_for_generators
+):
     ReportGuard(False)
     x = Matrix(MatrixKind.ProjMaxPlus, 2, 2)
     gens = [Matrix(MatrixKind.ProjMaxPlus, [[1, 0], [0, x.scalar_zero()]])]
@@ -478,7 +482,9 @@ def test_froidure_pin_proj_max_plus(checks_for_froidure_pin, checks_for_generato
         check(FroidurePin(gens))
 
 
-def test_froidure_pin_max_plus_trunc(checks_for_froidure_pin, checks_for_generators):
+def test_froidure_pin_max_plus_trunc(
+    checks_for_froidure_pin, checks_for_generators
+):
     ReportGuard(False)
     gens = [Matrix(MatrixKind.MaxPlusTrunc, 11, [[1, 0], [0, 1]])]
     assert FroidurePin(gens).size() == 12
@@ -490,7 +496,9 @@ def test_froidure_pin_max_plus_trunc(checks_for_froidure_pin, checks_for_generat
         check(FroidurePin(gens))
 
 
-def test_froidure_pin_min_plus_trunc(checks_for_froidure_pin, checks_for_generators):
+def test_froidure_pin_min_plus_trunc(
+    checks_for_froidure_pin, checks_for_generators
+):
     ReportGuard(False)
     gens = [Matrix(MatrixKind.MinPlusTrunc, 11, [[1, 0], [0, 1]])]
     assert FroidurePin(gens).size() == 2
@@ -512,6 +520,36 @@ def test_froidure_pin_ntp(checks_for_froidure_pin, checks_for_generators):
 
     for check in checks_for_froidure_pin:
         check(FroidurePin(gens))
+
+
+def test_froidure_pin_method_wrap():
+    S = FroidurePin(Perm([1, 0, 2, 3, 4, 5, 6]), Perm([1, 2, 3, 4, 5, 6, 0]))
+    with pytest.raises(ValueError):
+        S.add_generator(Perm([0, 1]))
+    with pytest.raises(TypeError):
+        S.add_generator(BMat8(0))
+    S.add_generator(Perm([0, 1, 2, 3, 4, 5, 6]))
+    assert S.number_of_generators() == 3
+
+    S.add_generators([])
+    with pytest.raises(TypeError):
+        S.add_generators(Perm([0, 1]))
+    with pytest.raises(ValueError):
+        S.add_generators([Perm([0, 1])])
+    with pytest.raises(TypeError):
+        S.add_generators([BMat8(0)])
+
+    S.init()
+    assert S.number_of_generators() == 0
+    S.add_generator(Perm([1, 0]))
+    assert S.degree() == 2
+
+    S.init()
+    assert S.number_of_generators() == 0
+    S.add_generators([Perm([1, 0, 3])])
+    assert S.degree() == 3
+
+    # TODO more
 
 
 # def test_froidure_pin_tce(checks_for_froidure_pin):

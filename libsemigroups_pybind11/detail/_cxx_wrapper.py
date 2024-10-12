@@ -136,7 +136,7 @@ class CxxWrapper(metaclass=abc.ABCMeta):
 
 # Only check that the arg is a list because the checking of the items is done
 # by pybind11
-def accepts_word(f):
+def accepts_list(f):
     """TODO"""
 
     def new_f(self, w):
