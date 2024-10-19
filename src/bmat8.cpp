@@ -113,6 +113,24 @@ the submodule ``bmat8``.
 * :any:`RightActionPPerm16List`
 )pbdoc");
 
+    // The next function __len__ is not really required, but without this the
+    // error messages from, e.g. FroidurePin.current_position gives misleading
+    // error messages in:
+    // >>> from libsemigroups_pybind11 import FroidurePin, Perm, BMat8
+    // >>> S = FroidurePin(Perm([1, 0, 2, 3, 4, 5, 6]),
+    // ...                 Perm([1, 2, 3, 4, 5, 0, 6]))
+    // >>> S.current_position(BMat8(0))
+    // TypeError: object of type '_libsemigroups_pybind11.BMat8' has no len()
+    //
+    // when it should be:
+    //
+    // TypeError: current_position(): incompatible function arguments. The
+    // following argument types are supported:
+    //  1. (self: _libsemigroups_pybind11.FroidurePinPerm16, x:
+    //  _libsemigroups_pybind11.StaticPerm16) -> int
+    //  2. (self: _libsemigroups_pybind11.FroidurePinBase, w: List[int]) -> int
+    //  3. (self: _libsemigroups_pybind11.FroidurePinBase, i: int) -> int
+    thing2.def("__len__", [](BMat8 const& x) { return 8; });
     thing2.def("__repr__", [](BMat8 const& x) { return to_string(x, "[]"); });
     thing2.def(
         "__setitem__",

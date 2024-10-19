@@ -87,10 +87,10 @@ class PTransfBase(CxxWrapper):
         return self._degree
 
     def __getitem__(self: Self, i: int) -> int:
-        return getattr(self._cxx_obj, "__getitem__")(i)
+        return self._cxx_obj[i]
 
     def __hash__(self: Self) -> int:
-        return getattr(self._cxx_obj, "__hash__")()
+        return self._cxx_obj.__hash__()
 
     def __new__(cls, *_):
         return super(PTransfBase, cls).__new__(cls)

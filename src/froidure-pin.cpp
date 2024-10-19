@@ -65,6 +65,7 @@ known.
 
 .. seealso::  :any:`FroidurePinBase` and :any:`Runner`.
 )pbdoc");
+      // thing.attr("Element") = py::class_<Element>(m);
       thing.def("__repr__", [](FroidurePin_ const& x) {
         return to_human_readable_repr(x);
       });
@@ -162,7 +163,7 @@ elements than before (whether it is fully enumerating or not).
           },
           py::arg("gens"),
           R"pbdoc(
-Add list of generators.
+Add a list of generators.
 
 See :any:`add_generator` for a detailed description.
 
@@ -220,7 +221,7 @@ instance.
               -> FroidurePin_& { return froidure_pin::closure(self, gens); },
           py::arg("gens"),
           R"pbdoc(
-Add non-redundant generators in collection.
+Add non-redundant generators in list.
 
 This function differs from :any:`FroidurePinPBR.add_generators` in that it
 tries to add the new generators one by one, and only adds those generators that
@@ -269,7 +270,7 @@ instance and ``False`` if it does not.
           },
           py::arg("gens"),
           R"pbdoc(
-Copy and add a collection of generators.
+Copy and add a list of generators.
 
 This function is equivalent to copy constructing a new :any:`FroidurePinPBR`
 instance and  then calling :any:`FroidurePinPBR.add_generators` on the copy.
@@ -330,7 +331,7 @@ immediately discarded by :any:`closure`.
           [](FroidurePin_ const& self, Element const& x) {
             return self.current_position(x);
           },
-          py::arg("x"),
+          py::arg("x").noconvert(),
           R"pbdoc(
 Find the position of an element with no enumeration.
 

@@ -523,6 +523,12 @@ def test_froidure_pin_ntp(checks_for_froidure_pin, checks_for_generators):
 
 
 def test_froidure_pin_method_wrap():
+    with pytest.raises(ValueError):
+        FroidurePin(Perm([1, 0, 2, 3, 4, 5, 6]), Perm([1, 2, 3, 4, 5, 0]))
+
+    with pytest.raises(TypeError):
+        FroidurePin(Perm([1, 0, 2, 3, 4, 5, 6]), BMat8(0))
+
     S = FroidurePin(Perm([1, 0, 2, 3, 4, 5, 6]), Perm([1, 2, 3, 4, 5, 6, 0]))
     with pytest.raises(ValueError):
         S.add_generator(Perm([0, 1]))
@@ -540,13 +546,28 @@ def test_froidure_pin_method_wrap():
         S.add_generators([BMat8(0)])
 
     S.init()
+    with pytest.raises(ValueError):
+        S.add_generators(
+            [Perm([0, 1, 2, 3, 4, 5]), Perm([0, 1, 2, 3, 4, 5, 6])]
+        )
+
+    S = FroidurePin(Perm([1, 0, 2, 3, 4, 5, 6]), Perm([1, 2, 3, 4, 5, 6, 0]))
+
+    with pytest.raises(TypeError):
+        S.closure(Perm([0, 1]))
+    with pytest.raises(ValueError):
+        S.closure([Perm([0, 1])])
+    with pytest.raises(TypeError):
+        S.closure([BMat8(0)])
+
+    S.init()
     assert S.number_of_generators() == 0
     S.add_generator(Perm([1, 0]))
     assert S.degree() == 2
 
     S.init()
     assert S.number_of_generators() == 0
-    S.add_generators([Perm([1, 0, 3])])
+    S.add_generators([Perm([1, 0, 2])])
     assert S.degree() == 3
 
     # TODO more

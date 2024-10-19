@@ -13,7 +13,7 @@ This package provides the user-facing python part of libsemigroups_pybind11 for
 FroidurePin.
 """
 
-from typing import Self, List, TypeVar, Iterator
+from typing import Self, List, TypeVar, Iterator, Any
 
 from .detail._cxx_wrapper import (
     to_cxx,
@@ -26,6 +26,7 @@ from .detail._cxx_wrapper import (
 from .transf import Transf, PPerm, Perm
 
 from _libsemigroups_pybind11 import (
+    LibsemigroupsError,
     FroidurePinBase,
     StaticTransf16 as _StaticTransf16,
     Transf1 as _Transf1,
@@ -76,21 +77,11 @@ from _libsemigroups_pybind11 import (
     product_by_reduction,
 )
 
+
 Element = TypeVar("Element")
 
 
-def _validate_args(args, types):
-    for pos, (arg, required_types) in enumerate(zip(args, types)):
-        print(pos)
-        print(arg)
-        print(required_types)
-        if not isinstance(arg, required_types):
-            raise TypeError("TODO")
-
-
-class FroidurePin(CxxWrapper):
-    __doc__ = _FroidurePinPBR.__doc__
-
+class FroidurePin(CxxWrapper):  # pylint: disable=missing-class-docstring
     py_to_cxx_type_dict = {
         (_StaticTransf16,): _FroidurePinTransf16,
         (_Transf1,): _FroidurePinTransf1,
@@ -117,27 +108,19 @@ class FroidurePin(CxxWrapper):
         (_NTPMat,): _FroidurePinNTPMat,
     }
 
+    ########################################################################
+    # Decorators
+    ########################################################################
+
     @staticmethod
     def _returns_element(method):
         def wrapper(self, *args):
             result = method(self, *args)
+
             return to_py(self.Element, result, self.degree())
 
         wrapper.__name__ = method.__name__
         return wrapper
-
-    def raise_if_bad_degree(self: Self, x: Element) -> None:
-        if (
-            hasattr(self, "Element")
-            and self.Element is not _BMat8
-            and self.degree() is not None
-            and isinstance(x, self.Element)
-            and x.degree() != self.degree()
-        ):
-            raise ValueError(
-                f"expected argument of type {self.Element} of degree "
-                f"{self.degree()}, but found degree {x.degree()}"
-            )
 
     @staticmethod
     def _accepts_list_of_elements(method):
@@ -146,13 +129,15 @@ class FroidurePin(CxxWrapper):
                 raise TypeError(
                     f"expected the argument to be a list, but found {type(gens)}"
                 )
-            for i, x in enumerate(gens):
-                if hasattr(self, "Element") and not isinstance(x, self.Element):
-                    raise TypeError(
-                        f"expected the argument to be a list of {self.Element}, "
-                        f"but found {type(x)} in position {i}"
-                    )
-                self.raise_if_bad_degree(x)
+            self.raise_if_inconsistent_degree(gens)
+            if hasattr(self, "Element"):
+                for i, x in enumerate(gens):
+                    if not isinstance(x, self.Element):
+                        raise TypeError(
+                            f"expected the argument to be a list of {self.Element}, "
+                            f"but found {type(x)} in position {i}"
+                        )
+                    self.raise_if_bad_degree(x)
             return method(self, gens)
 
         wrapper.__name__ = method.__name__
@@ -160,12 +145,10 @@ class FroidurePin(CxxWrapper):
 
     @staticmethod
     def _accepts_element_or(*types):
-        def check_accepts(f):
-            def new_f(self, *args):
+        def check_accepts(method):
+            def wrapper(self, *args):
                 if hasattr(self, "Element"):
                     new_types = ((self.Element,) + types,)
-                    # TODO if types is a tuple of tuples, then add self.Element
-                    # to the start of every tuple in types
                 else:
                     new_types = types
                 for pos, (arg, required_types) in enumerate(
@@ -177,17 +160,66 @@ class FroidurePin(CxxWrapper):
                             f"argument {pos} is of type {type(arg)}"
                         )
                     self.raise_if_bad_degree(arg)
+                return method(self, *args)
 
-                return f(self, *args)
-
-            new_f.__name__ = f.__name__
-            return new_f
+            wrapper.__name__ = method.__name__
+            return wrapper
 
         return check_accepts
 
-    def __init__(
+    ########################################################################
+    # Validation
+    ########################################################################
+
+    def raise_if_bad_degree(self: Self, x: Element) -> None:
+        # We only need to check for the types below o/w the degree is checked
+        # by libsemigroups itself
+        if (
+            isinstance(x, self.Element)
+            and isinstance(
+                to_cxx(x), (_StaticTransf16, _StaticPPerm16, _StaticPerm16)
+            )
+            and self.degree() is not None
+            and x.degree() != self.degree()
+        ):
+            raise ValueError(
+                f"expected argument of type {self.Element} with degree "
+                f"{self.degree()}, but found degree {x.degree()}"
+            )
+
+    def raise_if_inconsistent_degree(self: Self, gens: List[Element]) -> None:
+        # We only need to check for the types below o/w the degree is checked
+        # by libsemigroups itself
+        if len(gens) == 0 or not isinstance(
+            to_cxx(gens[0]), (_StaticTransf16, _StaticPPerm16, _StaticPerm16)
+        ):
+            return
+        for x in gens[1:]:
+            if x.degree() != gens[0].degree():
+                raise ValueError(
+                    f"expected argument of type {self.Element} with degree "
+                    f"{gens[0].degree()}, but found degree {x.degree()}"
+                )
+
+    ########################################################################
+    # python methods
+    ########################################################################
+
+    def degree(self: Self) -> int:
+        return self._degree
+
+    def _to_py_element(self: Self, x: Any) -> Element:
+        if self.Element in (Transf, PPerm, Perm):
+            return to_py(self.Element, x, self.degree())
+        return to_py(self.Element, x)
+
+    ########################################################################
+    # C++ FroidurePin special methods
+    ########################################################################
+
+    def __init__(  # pylint: disable=super-init-not-called
         self: Self, *args
-    ) -> None:  # pylint: disable=super-init-not-called
+    ) -> None:
         if len(args) == 0:
             raise ValueError("expected at least 1 argument, found 0")
         if isinstance(args[0], list) and len(args) == 1:
@@ -198,56 +230,61 @@ class FroidurePin(CxxWrapper):
             samples=(to_cxx(gens[0]),),
         )
         self.Element = type(gens[0])
-        self._cxx_obj = cpp_obj_t([to_cxx(x) for x in gens])
         self._degree = gens[0].degree()
+
+        for x in gens:
+            self.raise_if_bad_degree(x)
+
+        self._cxx_obj = cpp_obj_t([to_cxx(x) for x in gens])
 
     @_returns_element
     def __getitem__(self: Self, i: int) -> Element:
         return self._cxx_obj[i]
 
     def __iter__(self: Self) -> Iterator:
-        if self.Element in (Transf, PPerm, Perm):
-            return map(
-                lambda x: to_py(self.Element, x, self.degree()),
-                iter(self._cxx_obj),
-            )
-        return map(lambda x: to_py(self.Element, x), iter(self._cxx_obj))
+        # TODO use _to_py_element elsewhere too
+        return map(
+            self._to_py_element,
+            iter(self._cxx_obj),
+        )
 
-    def degree(self: Self) -> int:
-        return self._degree
+    ########################################################################
+    # C++ FroidurePin non-special methods
+    ########################################################################
 
-    @_accepts_element_or()
     def add_generator(self: Self, x: Element) -> Self:
         if self.number_of_generators() == 0:
             self._degree = x.degree()
         return self._cxx_obj.add_generator(to_cxx(x))
 
-    @_accepts_list_of_elements
     def add_generators(self: Self, gens: List[Element]) -> Self:
         if self.number_of_generators() == 0 and len(gens) != 0:
             self._degree = gens[0].degree()
-        return self._cxx_obj.add_generators([to_cxx(x) for x in gens])
+        # TODO what to do if the next line raises, and we set the degree above?
+        self._cxx_obj.add_generators([to_cxx(x) for x in gens])
+        return self
+
+    def current_elements(self: Self) -> Iterator:
+        return map(self._to_py_element, self._cxx_obj.current_elements())
+
+    @may_return_undefined
+    def current_position(self: Self, x: Element | List[int] | int) -> int:
+        return self._cxx_obj.current_position(to_cxx(x))
+
+    def closure(self: Self, x: List[Element]) -> Self:
+        return self._cxx_obj.closure(to_cxx(x))
 
     @_returns_element
     def generator(self: Self, i: int) -> Element:
         return self._cxx_obj.generator(i)
 
-    @_accepts_element_or((list, int))
-    @may_return_undefined
-    def current_position(self: Self, x: Element | List[int] | int) -> int:
-        return self._cxx_obj.current_position(to_cxx(x))
-
     def idempotents(self: Self) -> Iterator:
-        return map(
-            lambda x: to_py(self.Element, x, self.degree()),
-            self._cxx_obj.idempotents(),
-        )
+        return map(self._to_py_element, self._cxx_obj.idempotents())
 
     def init(self: Self) -> Self:
         self._degree = None
         return self._cxx_obj.init()
 
-    @_accepts_element_or((list, int))
     @may_return_undefined
     def position(self: Self, x: Element | List[int] | int) -> int:
         return self._cxx_obj.position(to_cxx(x))
@@ -262,7 +299,6 @@ class FroidurePin(CxxWrapper):
             self._cxx_obj.sorted_elements(),
         )
 
-    @accepts_list
     @_returns_element
     def to_element(self: Self, w: List[int]) -> Element:
         return self._cxx_obj.to_element(w)
