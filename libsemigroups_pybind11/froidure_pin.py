@@ -7,36 +7,22 @@
 # The full license is in the file LICENSE, distributed with this software.
 
 # pylint: disable=no-name-in-module, invalid-name, missing-function-docstring
-
+# pylint: disable=unused-import
 """
 This package provides the user-facing python part of libsemigroups_pybind11 for
 FroidurePin.
 """
 
-from typing import Self, List, TypeVar, Iterator, Any
+from typing import Self, List, TypeVar, Iterator
 
-from .detail._cxx_wrapper import (
-    to_cxx,
-    to_py,
-    CxxWrapper,
-    may_return_undefined,
-    accepts_list,
-)
-
-from .transf import Transf, PPerm, Perm
 
 from _libsemigroups_pybind11 import (
-    LibsemigroupsError,
-    FroidurePinBase,
-    StaticTransf16 as _StaticTransf16,
     Transf1 as _Transf1,
     Transf2 as _Transf2,
     Transf4 as _Transf4,
-    StaticPPerm16 as _StaticPPerm16,
     PPerm1 as _PPerm1,
     PPerm2 as _PPerm2,
     PPerm4 as _PPerm4,
-    StaticPerm16 as _StaticPerm16,
     Perm1 as _Perm1,
     Perm2 as _Perm2,
     Perm4 as _Perm4,
@@ -75,6 +61,13 @@ from _libsemigroups_pybind11 import (
     FroidurePinMinPlusTruncMat as _FroidurePinMinPlusTruncMat,
     FroidurePinNTPMat as _FroidurePinNTPMat,
     product_by_reduction,
+)
+
+from .detail._cxx_wrapper import (
+    to_cxx,
+    to_py,
+    CxxWrapper,
+    may_return_undefined,
 )
 
 
@@ -142,7 +135,6 @@ class FroidurePin(CxxWrapper):  # pylint: disable=missing-class-docstring
         return self._cxx_obj[i]
 
     def __iter__(self: Self) -> Iterator:
-        # TODO use _to_py_element elsewhere too
         return map(
             lambda x: to_py(self.Element, x),
             iter(self._cxx_obj),

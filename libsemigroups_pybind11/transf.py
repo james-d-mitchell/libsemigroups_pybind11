@@ -15,9 +15,9 @@ relating to transformations.
 """
 
 import abc
-import itertools
 import copy
-from typing import Iterator, Any, Union
+
+from typing import Any, Union
 from typing_extensions import Self
 
 from _libsemigroups_pybind11 import (
@@ -263,9 +263,6 @@ class PPerm(PTransfBase):  # pylint: disable=missing-class-docstring
 
 class Perm(Transf):  # pylint: disable=missing-class-docstring
     __doc__ = _Perm1.__doc__
-
-    def __init__(self: Self, *args):
-        super().__init__(*args)
 
     @staticmethod
     def _cxx_type_from_degree(n: int):
