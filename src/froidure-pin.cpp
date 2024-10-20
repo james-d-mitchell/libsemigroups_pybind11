@@ -836,7 +836,7 @@ elements are sorted, or :any:`UNDEFINED` if *i* is greater than
 
   void init_froidure_pin(py::module& m) {
     bind_froidure_pin<Transf<16, uint8_t>>(m, "Transf16");
-    // TODO uncomment bind_froidure_pin<LeastTransf<16>>(m, "Transf16");
+    // TODO uncomment bind_froidure_pin<HPCombiTransf<16>>(m, "Transf16");
     bind_froidure_pin<Transf<0, uint8_t>>(m, "Transf1");
     bind_froidure_pin<Transf<0, uint16_t>>(m, "Transf2");
     bind_froidure_pin<Transf<0, uint32_t>>(m, "Transf4");

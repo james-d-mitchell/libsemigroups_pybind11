@@ -124,6 +124,13 @@ namespace libsemigroups {
     m.attr("LIBSEMIGROUPS_EIGEN_ENABLED") = false;
 #endif
 
+#ifdef LIBSEMIGROUPS_HPCOMBI_ENABLED
+    m.attr("LIBSEMIGROUPS_HPCOMBI_ENABLED")
+        = static_cast<bool>(LIBSEMIGROUPS_HPCOMBI_ENABLED);
+#else
+    m.attr("LIBSEMIGROUPS_HPCOMBI_ENABLED") = false;
+#endif
+
     ////////////////////////////////////////////////////////////////////////
     // Classes
     ////////////////////////////////////////////////////////////////////////

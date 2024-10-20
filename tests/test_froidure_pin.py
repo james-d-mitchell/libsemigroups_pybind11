@@ -31,6 +31,7 @@ from libsemigroups_pybind11 import (
     Perm,
     BMat8,
     froidure_pin,
+    LibsemigroupsError,
 )
 
 
@@ -523,14 +524,14 @@ def test_froidure_pin_ntp(checks_for_froidure_pin, checks_for_generators):
 
 
 def test_froidure_pin_method_wrap():
-    with pytest.raises(ValueError):
+    with pytest.raises(LibsemigroupsError):
         FroidurePin(Perm([1, 0, 2, 3, 4, 5, 6]), Perm([1, 2, 3, 4, 5, 0]))
 
     with pytest.raises(TypeError):
         FroidurePin(Perm([1, 0, 2, 3, 4, 5, 6]), BMat8(0))
 
     S = FroidurePin(Perm([1, 0, 2, 3, 4, 5, 6]), Perm([1, 2, 3, 4, 5, 6, 0]))
-    with pytest.raises(ValueError):
+    with pytest.raises(LibsemigroupsError):
         S.add_generator(Perm([0, 1]))
     with pytest.raises(TypeError):
         S.add_generator(BMat8(0))
@@ -540,13 +541,13 @@ def test_froidure_pin_method_wrap():
     S.add_generators([])
     with pytest.raises(TypeError):
         S.add_generators(Perm([0, 1]))
-    with pytest.raises(ValueError):
+    with pytest.raises(LibsemigroupsError):
         S.add_generators([Perm([0, 1])])
     with pytest.raises(TypeError):
         S.add_generators([BMat8(0)])
 
     S.init()
-    with pytest.raises(ValueError):
+    with pytest.raises(LibsemigroupsError):
         S.add_generators(
             [Perm([0, 1, 2, 3, 4, 5]), Perm([0, 1, 2, 3, 4, 5, 6])]
         )
@@ -555,7 +556,7 @@ def test_froidure_pin_method_wrap():
 
     with pytest.raises(TypeError):
         S.closure(Perm([0, 1]))
-    with pytest.raises(ValueError):
+    with pytest.raises(LibsemigroupsError):
         S.closure([Perm([0, 1])])
     with pytest.raises(TypeError):
         S.closure([BMat8(0)])
