@@ -595,8 +595,8 @@ This function returns the number of paths in the word graph *wg* starting at
   is the out-degree of the word graph.
 
 .. note::
-    If ``libsemigroups`` is compiled with the flag ``--enable-eigen``, then
-    this function makes use of the `Eigen` library for linear algebra (see
+    If libsemigroups_ is compiled with the flag ``--enable-eigen``, then
+    this function makes use of the Eigen_ library for linear algebra (see
     :cite:`Guennebaud2010aa`).
 
 .. warning::
@@ -663,8 +663,8 @@ length in a given range.
     preceding algorithms and then applies that.
 
 .. note::
-    If ``libsemigroups`` is compiled with the flag ``--enable-eigen``, then
-    this function makes use of the `Eigen` library for linear algebra (see
+    If libsemigroups_ is compiled with the flag ``--enable-eigen``, then
+    this function makes use of the Eigen_ library for linear algebra (see
     :cite:`Guennebaud2010aa`).
 
 .. warning::
@@ -740,8 +740,8 @@ and ending at node *target* with length in a given range.
     preceding algorithms and then applies that.
 
 .. note::
-    If ``libsemigroups`` is compiled with the flag ``--enable-eigen``, then
-    this function makes use of the `Eigen` library for linear algebra (see
+    If libsemigroups_ is compiled with the flag ``--enable-eigen``, then
+    this function makes use of the Eigen_ library for linear algebra (see
     :cite:`Guennebaud2010aa`).
 
 .. warning::
