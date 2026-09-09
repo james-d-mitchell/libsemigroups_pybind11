@@ -45,9 +45,10 @@ namespace libsemigroups {
 Class containing an implementation of the Knuth-Bendix Algorithm.
 
 On this page we describe the functionality relating to the Knuth-Bendix
-algorithm for semigroups and monoids in ``libsemigroups_pybind11``. This page
+algorithm for semigroups and monoids in |libsemigroups_pybind11|. This page
 contains details of the member functions of the class
-:any:`KnuthBendix`. This class is used to represent a `string rewriting system <https://w.wiki/9Re>`_
+:any:`KnuthBendix`. This class is used to represent a
+`string rewriting system <https://w.wiki/9Re>`_
 defining a 1- or 2-sided congruence on a finitely presented monoid or
 semigroup.
 
@@ -388,7 +389,7 @@ Copy a :any:`NormalFormRange` object.
                 });
       thing.def("next", [](NormalFormRange& nfr) { nfr.next(); });
     }  // bind_normal_form_range
-  }    // namespace
+  }  // namespace
 
   template <typename Word>
   void bind_redundant_rule(py::module& m) {

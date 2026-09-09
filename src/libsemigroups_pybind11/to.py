@@ -5,7 +5,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 
 """Subpackage containing the :any:`to` function for converting
-``libsemigroups_pybind11`` objects from one type to another.
+|libsemigroups_pybind11| objects from one type to another.
 """
 
 from typing import _GenericAlias
@@ -52,7 +52,10 @@ from .congruence import Congruence as _Congruence
 from .detail.cxx_wrapper import to_cxx as _to_cxx
 from .froidure_pin import FroidurePin as _FroidurePin
 from .knuth_bendix import KnuthBendix as _KnuthBendix
-from .presentation import InversePresentation as _InversePresentation, Presentation as _Presentation
+from .presentation import (
+    InversePresentation as _InversePresentation,
+    Presentation as _Presentation,
+)
 from .todd_coxeter import ToddCoxeter as _ToddCoxeter
 
 
@@ -119,7 +122,7 @@ _VALID_TYPES_STRING = "\n    * " + "\n    * ".join(_VALID_TYPES) + "\n"
 
 
 def to(*args, rtype: tuple):
-    """Convert from one type of ``libsemigroups_pybind11`` object to another.
+    """Convert from one type of |libsemigroups_pybind11| object to another.
 
     This function converts the the arguments specified in *args* to object of
     type *rtype*.

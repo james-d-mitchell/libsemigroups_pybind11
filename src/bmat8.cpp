@@ -94,7 +94,7 @@ the submodule ``bmat8``.
    BMat8(0)
 
 :any:`BMat8` objects can be used with the following algorithms in
-``libsemigroups_pybind11``
+|libsemigroups_pybind11|
 
 * :any:`FroidurePin`
 * :any:`Konieczny`
@@ -196,8 +196,7 @@ lists in *rows*.
 
 :complexity: Constant.)pbdoc");
 
-    thing.def(
-        "degree", [](BMat8 const& self) { return 8; }, R"pbdoc(
+    thing.def("degree", [](BMat8 const& self) { return 8; }, R"pbdoc(
 Returns the degree of *self*.
 
 This function always returns ``8``.

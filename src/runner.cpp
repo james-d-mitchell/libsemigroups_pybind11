@@ -114,7 +114,7 @@ The time between the given point and now.
    datetime.timedelta
 
 .. deprecated:: 1.1
-  This will be removed from ``libsemigroups_pybind11`` in v2. Instead, use
+  This will be removed from |libsemigroups_pybind11| in v2. Instead, use
   ``datetime.datetime.now() - t``.
 
 .. seealso::
@@ -308,7 +308,7 @@ last report, as set by one of:
    datetime.datetime
 
 .. deprecated:: 1.1
-  This will be removed from ``libsemigroups_pybind11`` in v2.
+  This will be removed from |libsemigroups_pybind11| in v2.
 )pbdoc");
     thing.def("reset_last_report",
               &Reporter::reset_last_report,
@@ -363,7 +363,7 @@ run at the outermost level.
                                        R"pbdoc(
 Abstract class for derived [#sortof]_ classes that run an algorithm.
 
-Many of the classes in ``libsemigroups_pybind11`` implementing the algorithms,
+Many of the classes in |libsemigroups_pybind11| implementing the algorithms,
 that are the reason for the existence of this package, are derived from
 :any:`Runner`. The :any:`Runner` class exists to collect various common tasks
 required by such a derived class with a possibly long-running :any:`Runner.run`. These
@@ -502,7 +502,7 @@ any derived class of :any:`Runner`.
 .. seealso::  :any:`run_for`.
 )pbdoc");
     thing.def("run_until",
-              (void(Runner::*)(std::function<bool()>&)) & Runner::run_until,
+              (void (Runner::*)(std::function<bool()>&)) &Runner::run_until,
               py::arg("func"),
               R"pbdoc(
 Run until a nullary predicate returns true or finished.
